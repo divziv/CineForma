@@ -38,11 +38,11 @@ export default function ScreenplayEditor({ onAnalyze, isAnalyzing }: ScreenplayE
   };
 
   return (
-    <div id="screenplay-editor-panel" className="bg-[#0b0f19] border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col h-full flex-1">
+    <div id="screenplay-editor-panel" className="bg-bento-card border border-bento-border rounded-xl overflow-hidden shadow-2xl flex flex-col h-full flex-1">
       {/* Header Tabs */}
-      <div className="bg-[#111625] px-4 py-3 border-b border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+      <div className="bg-bento-panel px-4 py-3 border-b border-bento-border flex flex-wrap gap-2 items-center justify-between">
         <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-blue-400" />
+          <FileText className="w-5 h-5 text-bento-accent" />
           <h2 className="font-sans font-semibold text-slate-200 tracking-tight text-sm uppercase">
             Screenplay Input Desk
           </h2>
@@ -53,7 +53,7 @@ export default function ScreenplayEditor({ onAnalyze, isAnalyzing }: ScreenplayE
             id="preset-selector"
             value={selectedPreset}
             onChange={(e) => handlePresetChange(e.target.value)}
-            className="bg-[#172033] border border-slate-700 text-slate-200 text-xs rounded px-2.5 py-1 focus:outline-none focus:border-blue-500 font-mono"
+            className="bg-bento-bg border border-bento-border text-slate-200 text-xs rounded px-2.5 py-1 focus:outline-none focus:border-bento-accent font-mono"
           >
             {SCREENPLAY_PRESETS.map((p) => (
               <option key={p.id} value={p.id}>
@@ -73,11 +73,11 @@ export default function ScreenplayEditor({ onAnalyze, isAnalyzing }: ScreenplayE
             value={scriptText}
             onChange={handleCustomChange}
             placeholder="INT. SCENE HEADING - DAY&#10;&#10;Describe physical scene and visual actions here.&#10;&#10;CHARACTER NAME&#10;(parenthetical direction)&#10;Dialogue lines go here."
-            className="flex-1 w-full bg-[#070b13] border border-slate-800 rounded-lg p-5 text-slate-300 font-mono text-sm leading-relaxed focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 overflow-y-auto resize-none"
+            className="flex-1 w-full bg-bento-canvas border border-bento-border rounded-lg p-5 text-slate-350 font-mono text-sm leading-relaxed focus:outline-none focus:border-bento-accent focus:ring-1 focus:ring-bento-accent overflow-y-auto resize-none"
           />
           {selectedPreset !== "custom" && (
-            <div className="absolute top-3 right-3 bg-[#111827]/85 border border-slate-800 rounded-md px-2 py-1 text-[10px] text-slate-400 font-mono pointer-events-none flex items-center gap-1.5 shadow">
-              <Drama className="w-3.5 h-3.5 text-rose-400" />
+            <div className="absolute top-3 right-3 bg-bento-card/90 border border-bento-border rounded-md px-2 py-1 text-[10px] text-slate-400 font-mono pointer-events-none flex items-center gap-1.5 shadow">
+              <Drama className="w-3.5 h-3.5 text-bento-accent" />
               {SCREENPLAY_PRESETS.find((p) => p.id === selectedPreset)?.genre}
             </div>
           )}
@@ -94,15 +94,15 @@ export default function ScreenplayEditor({ onAnalyze, isAnalyzing }: ScreenplayE
           <button
             type="submit"
             disabled={isAnalyzing || !scriptText.trim()}
-            className={`w-full sm:w-auto font-sans font-medium text-xs tracking-wide uppercase px-6 py-3 rounded-lg flex items-center justify-center gap-2.5 transition-all shadow-lg ${
+            className={`w-full sm:w-auto font-sans font-bold text-xs tracking-wider uppercase px-6 py-3.5 rounded-lg flex items-center justify-center gap-2.5 transition-all shadow-md ${
               isAnalyzing || !scriptText.trim()
                 ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
-                : "bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:via-indigo-500 hover:to-cyan-500 text-white shadow-cyan-950/40 hover:-translate-y-0.5 cursor-pointer"
+                : "bg-bento-accent hover:bg-orange-500 text-black hover:-translate-y-0.5 cursor-pointer"
             }`}
           >
             {isAnalyzing ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-black" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>

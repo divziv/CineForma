@@ -320,9 +320,9 @@ export default function StoryboardCard({
   };
 
   return (
-    <div id={`shot-card-${shot.id}`} className="bg-[#101524] border border-slate-800 rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-slate-700 transition-all group">
+    <div id={`shot-card-${shot.id}`} className="bg-bento-card border border-bento-border rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-bento-accent/50 transition-all group">
       {/* Visual Frame Block (Procedural Canvas or Generated AI Image) */}
-      <div className="relative aspect-video w-full bg-[#070a12] overflow-hidden group-hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all">
+      <div className="relative aspect-video w-full bg-bento-canvas overflow-hidden group-hover:shadow-[0_0_20px_rgba(242,125,38,0.15)] transition-all">
         {aiImageUrl ? (
           <img
             src={aiImageUrl}
@@ -341,21 +341,21 @@ export default function StoryboardCard({
 
         {/* Framing HUD HUD details */}
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
-          <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-amber-400 tracking-wider uppercase border border-slate-800">
+          <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-bento-accent tracking-wider uppercase border border-bento-border">
             SCENE {shot.sceneNumber}
           </span>
-          <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-sky-300 tracking-wider border border-slate-800">
+          <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-slate-350 tracking-wider border border-bento-border">
             SHOT #{shot.sequenceId}
           </span>
         </div>
 
         {/* Overlaid Camera Specs */}
         <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-          <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-slate-800 uppercase">
-            <Compass className="w-3 h-3 text-cyan-400" />
+          <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-bento-border uppercase">
+            <Compass className="w-3 h-3 text-bento-accent" />
             {shot.cameraMetadata.angle}
           </span>
-          <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-slate-800 uppercase">
+          <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-bento-border uppercase">
             <Aperture className="w-3 h-3 text-emerald-400" />
             {shot.cameraMetadata.lens}
           </span>
@@ -367,11 +367,11 @@ export default function StoryboardCard({
             <button
               onClick={handleTriggerGenImage}
               disabled={isGenerating}
-              className="bg-purple-600 hover:bg-purple-500 disabled:bg-slate-800 text-white font-mono text-[9px] uppercase font-bold tracking-wider px-2 py-1 rounded shadow-md border border-purple-400/30 flex items-center gap-1 cursor-pointer transition-colors"
+              className="bg-bento-accent hover:bg-orange-500 disabled:bg-slate-800 text-black font-mono text-[9px] uppercase font-bold tracking-wider px-2.5 py-1 rounded shadow-md border border-bento-border flex items-center gap-1 cursor-pointer transition-colors"
             >
               {isGenerating ? (
                 <>
-                  <svg className="animate-spin h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin h-2.5 w-2.5 text-black" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
@@ -379,13 +379,13 @@ export default function StoryboardCard({
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-2.5 h-2.5 text-yellow-300" />
+                  <Sparkles className="w-2.5 h-2.5 text-black/70" />
                   <span>PRE-VIZ GENERATOR</span>
                 </>
               )}
             </button>
           ) : (
-            <span className="bg-emerald-600/90 text-white font-mono text-[8px] tracking-widest uppercase px-1.5 py-0.5 rounded flex items-center gap-1 shadow border border-emerald-400/30">
+            <span className="bg-emerald-600/90 text-white font-mono text-[8px] tracking-widest uppercase px-1.5 py-0.5 rounded flex items-center gap-1 shadow border border-emerald-450/40">
               <CheckCircle className="w-2.5 h-2.5" /> AI DIRECT
             </span>
           )}
@@ -396,9 +396,9 @@ export default function StoryboardCard({
       <div className="p-4 flex-1 flex flex-col justify-between gap-3 text-slate-200">
         <div>
           {isEditing ? (
-            <div className="space-y-2.5 bg-slate-900 border border-slate-800 rounded-lg p-3">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 mb-1.5">
-                <span className="text-[10px] font-mono text-cyan-400 font-semibold uppercase">Edit Shot Assets</span>
+            <div className="space-y-2.5 bg-bento-panel border border-bento-border rounded-lg p-3">
+              <div className="flex items-center justify-between border-b border-bento-border pb-1.5 mb-1.5">
+                <span className="text-[10px] font-mono text-bento-accent font-semibold uppercase">Edit Shot Assets</span>
                 <span className="text-[10px] text-slate-500 font-mono">id: {shot.id}</span>
               </div>
               <div>
@@ -407,7 +407,7 @@ export default function StoryboardCard({
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full bg-[#0e1322] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 font-sans focus:outline-none focus:border-cyan-500"
+                  className="w-full bg-bento-bg border border-bento-border rounded px-2 py-1 text-xs text-slate-200 font-sans focus:outline-none focus:border-bento-accent"
                 />
               </div>
               <div>
@@ -416,7 +416,7 @@ export default function StoryboardCard({
                   value={editAction}
                   onChange={(e) => setEditAction(e.target.value)}
                   rows={2}
-                  className="w-full bg-[#0e1322] border border-slate-700 rounded px-2 py-1 text-xs text-slate-300 font-sans focus:outline-none focus:border-cyan-500 resize-none"
+                  className="w-full bg-bento-bg border border-bento-border rounded px-2 py-1 text-xs text-slate-300 font-sans focus:outline-none focus:border-bento-accent resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -427,7 +427,7 @@ export default function StoryboardCard({
                     value={editCharacter}
                     onChange={(e) => setEditCharacter(e.target.value)}
                     placeholder="None"
-                    className="w-full bg-[#0e1322] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-bento-accent"
                   />
                 </div>
                 <div>
@@ -437,7 +437,7 @@ export default function StoryboardCard({
                     value={editDialogue}
                     onChange={(e) => setEditDialogue(e.target.value)}
                     placeholder="None"
-                    className="w-full bg-[#0e1322] border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-bento-accent"
                   />
                 </div>
               </div>
@@ -448,7 +448,7 @@ export default function StoryboardCard({
                     type="text"
                     value={editAngle}
                     onChange={(e) => setEditAngle(e.target.value)}
-                    className="w-full bg-[#0e1322] border border-slate-700 rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -457,7 +457,7 @@ export default function StoryboardCard({
                     type="text"
                     value={editLens}
                     onChange={(e) => setEditLens(e.target.value)}
-                    className="w-full bg-[#0e1322] border border-slate-700 rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
                   />
                 </div>
                 <div>
@@ -466,29 +466,31 @@ export default function StoryboardCard({
                     type="text"
                     value={editMotion}
                     onChange={(e) => setEditMotion(e.target.value)}
-                    className="w-full bg-[#0e1322] border border-slate-700 rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-2 border-t border-bento-border">
                 <button
+                  type="button"
                   onClick={() => setIsEditing(false)}
                   className="px-2 py-1 text-[10px] font-mono text-slate-400 hover:text-slate-200 cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
                   onClick={saveEdits}
-                  className="px-2.5 py-1 text-[10px] font-mono bg-cyan-600 hover:bg-cyan-500 rounded text-white cursor-pointer flex items-center gap-1"
+                  className="px-2.5 py-1 text-[10px] font-mono bg-bento-accent hover:bg-orange-500 rounded text-black font-bold cursor-pointer flex items-center gap-1"
                 >
-                  <CheckCircle className="w-3 h-3" /> Save Specs
+                  <CheckCircle className="w-3 h-3 text-black" /> Save Specs
                 </button>
               </div>
             </div>
           ) : (
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-1.5">
-                <h3 className="font-sans font-semibold text-slate-200 text-sm tracking-tight leading-snug group-hover:text-blue-400 transition-colors">
+                <h3 className="font-sans font-semibold text-slate-200 text-sm tracking-tight leading-snug group-hover:text-bento-accent transition-colors">
                   {shot.title}
                 </h3>
                 <button
@@ -499,14 +501,14 @@ export default function StoryboardCard({
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <p className="text-xs text-slate-450 leading-relaxed font-sans line-clamp-3">
+              <p className="text-xs text-slate-400 leading-relaxed font-sans line-clamp-3">
                 {shot.actionDescription}
               </p>
 
               {/* Dialogue Bubble overlays inside frames */}
               {shot.characterInShot && (
-                <div className="bg-slate-900/90 border border-slate-800 rounded-lg p-2 mt-2">
-                  <span className="block text-[9px] tracking-wider font-bold text-rose-400 uppercase font-mono mb-0.5">
+                <div className="bg-bento-canvas border border-bento-border rounded-lg p-2 mt-2">
+                  <span className="block text-[9px] tracking-wider font-bold text-bento-accent uppercase font-mono mb-0.5">
                     {shot.characterInShot} (DIALOGUE)
                   </span>
                   <p className="text-xs text-slate-300 italic font-sans leading-snug">
@@ -519,11 +521,11 @@ export default function StoryboardCard({
         </div>
 
         {/* Interactive Timing & Slider */}
-        <div className="pt-2 border-t border-slate-900 flex flex-col gap-2">
+        <div className="pt-2 border-t border-bento-border flex flex-col gap-2">
           {/* Tone & Emotional Swatches */}
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-500 uppercase flex items-center gap-1">
-              <Camera className="w-3.5 h-3.5 text-purple-400" />
+              <Camera className="w-3.5 h-3.5 text-bento-accent" />
               Emotional Tone
             </span>
             <div className="flex gap-1.5">
@@ -531,13 +533,13 @@ export default function StoryboardCard({
                 <button
                   key={idx}
                   onClick={() => handleCopyColor(color, idx)}
-                  className="w-5 h-5 rounded-full border border-slate-900 shadow hover:scale-115 transition-all relative flex items-center justify-center cursor-pointer"
+                  className="w-5 h-5 rounded-full border border-bento-border shadow hover:scale-115 transition-all relative flex items-center justify-center cursor-pointer"
                   style={{ backgroundColor: color }}
                   title={`Copy hex: ${color}`}
                 >
                   {copiedIndex === idx ? (
                     <span className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center">
-                      <Check className="w-2.5 h-2.5 text-emerald-400" />
+                      <Check className="w-2.5 h-2.5 text-emerald-450" />
                     </span>
                   ) : (
                     <span className="absolute opacity-0 hover:opacity-100 inset-0 bg-black/30 rounded-full flex items-center justify-center">
@@ -550,13 +552,13 @@ export default function StoryboardCard({
           </div>
 
           {/* Shot Timing Pacing Controls */}
-          <div className="bg-slate-950/40 border border-slate-900/60 p-2 rounded-lg space-y-1">
+          <div className="bg-bento-canvas border border-bento-border p-2 rounded-lg space-y-1">
             <div className="flex items-center justify-between text-[10px] font-mono">
               <span className="text-slate-500 flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-green-400" />
+                <Clock className="w-3.5 h-3.5 text-bento-accent" />
                 Duration Specs:
               </span>
-              <span className="text-emerald-400 font-bold">{shot.durationSeconds.toFixed(1)}s</span>
+              <span className="text-bento-accent font-bold">{shot.durationSeconds.toFixed(1)}s</span>
             </div>
             <input
               type="range"
@@ -565,7 +567,7 @@ export default function StoryboardCard({
               step={0.5}
               value={shot.durationSeconds}
               onChange={handleDurationChange}
-              className="w-full accent-blue-500 h-1 bg-slate-800 rounded-lg cursor-pointer focus:outline-none"
+              className="w-full accent-bento-accent h-1 bg-bento-card rounded-lg cursor-pointer focus:outline-none"
             />
           </div>
 
@@ -582,7 +584,7 @@ export default function StoryboardCard({
               <button
                 onClick={() => onMove(shot.id, "left")}
                 disabled={shot.sequenceId <= 1}
-                className="bg-[#171f30] hover:bg-[#202b42] disabled:bg-slate-900 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-slate-800 flex items-center justify-center cursor-pointer"
+                className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer"
                 title="Shift Sequence Left"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
@@ -590,7 +592,7 @@ export default function StoryboardCard({
               <button
                 onClick={() => onMove(shot.id, "right")}
                 disabled={shot.sequenceId >= totalShots}
-                className="bg-[#171f30] hover:bg-[#202b42] disabled:bg-slate-900 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-slate-800 flex items-center justify-center cursor-pointer"
+                className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer"
                 title="Shift Sequence Right"
               >
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -598,7 +600,7 @@ export default function StoryboardCard({
             </div>
             <button
               onClick={() => onDelete(shot.id)}
-              className="text-slate-500 hover:text-red-400 hover:bg-slate-900/50 p-1.5 rounded transition-all cursor-pointer"
+              className="text-slate-500 hover:text-red-400 hover:bg-bento-bg/50 p-1.5 rounded transition-all cursor-pointer"
               title="Delete Shot"
             >
               <Trash2 className="w-3.5 h-3.5" />

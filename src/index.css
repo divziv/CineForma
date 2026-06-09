@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+@theme {
+  --color-bento-bg: #0A0B0E;
+  --color-bento-card: #111218;
+  --color-bento-panel: #0E0F14;
+  --color-bento-canvas: #07080A;
+  --color-bento-border: #2D2E35;
+  --color-bento-accent: #F27D26;
+  --color-bento-text: #D1D5DB;
+}
+
+body {
+  background-color: var(--color-bento-bg);
+  color: var(--color-bento-text);
+}
+

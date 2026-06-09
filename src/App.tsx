@@ -318,19 +318,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070a13] text-slate-100 flex flex-col font-sans selection:bg-blue-500 selection:text-white">
+    <div className="min-h-screen bg-bento-bg text-slate-100 flex flex-col font-sans selection:bg-bento-accent selection:text-black">
       {/* Studio Header Nav */}
-      <header className="bg-[#0b0f19] border-b border-slate-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-40 shadow-md">
+      <header className="bg-bento-card border-b border-bento-border px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-tr from-blue-600 to-indigo-600 p-2.5 rounded-lg shadow-md flex items-center justify-center">
-            <Clapperboard className="w-6 h-6 text-slate-100" />
+          <div className="bg-gradient-to-tr from-orange-500 to-bento-accent p-2.5 rounded-lg shadow-md flex items-center justify-center">
+            <Clapperboard className="w-6 h-6 text-black" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="font-sans font-bold tracking-tight text-lg text-slate-100">
                 CineForma
               </h1>
-              <span className="bg-blue-950 text-blue-400 font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border border-blue-900/40 tracking-wider">
+              <span className="bg-bento-canvas text-bento-accent font-mono text-[9px] font-bold px-1.5 py-0.5 rounded border border-bento-border tracking-wider">
                 PRE-VIZ v1.2
               </span>
             </div>
@@ -341,12 +341,12 @@ export default function App() {
         </div>
 
         {/* Global workspace tabs */}
-        <div className="flex items-center gap-1.5 bg-[#05070e] p-1 rounded-lg border border-slate-800">
+        <div className="flex items-center gap-1.5 bg-bento-canvas p-1 rounded-lg border border-bento-border">
           <button
             onClick={() => setActiveTab("workspace")}
             className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
               activeTab === "workspace"
-                ? "bg-[#182136] text-blue-400 shadow-sm border border-slate-800"
+                ? "bg-bento-card text-bento-accent shadow-sm border border-bento-border"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -357,7 +357,7 @@ export default function App() {
             disabled={shots.length === 0}
             className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
               activeTab === "vitals"
-                ? "bg-[#182136] text-blue-400 shadow-sm border border-slate-800"
+                ? "bg-bento-card text-bento-accent shadow-sm border border-bento-border"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -367,7 +367,7 @@ export default function App() {
             onClick={() => setActiveTab("help")}
             className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
               activeTab === "help"
-                ? "bg-[#182136] text-blue-400 shadow-xs border border-slate-800"
+                ? "bg-bento-card text-bento-accent shadow-xs border border-bento-border"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -391,10 +391,10 @@ export default function App() {
 
             {/* Right Storyboard Pre-Viz Track Area: Span 7 */}
             <div className="lg:col-span-7 flex flex-col gap-5">
-              <div className="bg-[#0b0f19] border border-slate-800 rounded-xl p-5 shadow-2xl flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="bg-bento-card border border-bento-border rounded-xl p-5 shadow-2xl flex flex-col gap-4">
+                <div className="flex items-center justify-between border-b border-bento-border pb-3">
                   <div className="flex items-center gap-2">
-                    <Tv className="w-5 h-5 text-purple-400" />
+                    <Tv className="w-5 h-5 text-bento-accent" />
                     <h2 className="font-sans font-semibold text-slate-200 tracking-tight text-sm uppercase">
                       Cinematic Viewport Grid
                     </h2>
@@ -403,13 +403,13 @@ export default function App() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleAddCustomShot}
-                        className="bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-sans px-2.5 py-1.5 rounded border border-slate-700 flex items-center gap-1.5 cursor-pointer transition-colors"
+                        className="bg-bento-panel hover:bg-slate-800 text-slate-100 text-xs font-sans px-2.5 py-1.5 rounded border border-bento-border flex items-center gap-1.5 cursor-pointer transition-colors"
                       >
-                        <Plus className="w-3.5 h-3.5" /> Add Viewport
+                        <Plus className="w-3.5 h-3.5 text-bento-accent" /> Add Viewport
                       </button>
                       <button
                         onClick={handleResetWorkspace}
-                        className="bg-[#1e141a] border border-red-950 hover:bg-[#2e1d27] text-rose-450 text-xs font-sans px-2.5 py-1.5 rounded flex items-center gap-1.5 cursor-pointer transition-colors"
+                        className="bg-red-950/20 border border-red-950/80 hover:bg-red-950/40 text-red-400 text-xs font-sans px-2.5 py-1.5 rounded flex items-center gap-1.5 cursor-pointer transition-colors"
                         title="Clear board"
                       >
                         <RefreshCw className="w-3.5 h-3.5" /> Reset Board
@@ -421,7 +421,7 @@ export default function App() {
                 {/* Grid Deck */}
                 {shots.length === 0 ? (
                   <div className="py-20 flex flex-col items-center justify-center text-center px-4">
-                    <div className="bg-[#0f1424] p-5 rounded-full border border-slate-800 mb-4 animate-pulse">
+                    <div className="bg-bento-canvas p-5 rounded-full border border-bento-border mb-4 animate-pulse">
                       <Film className="w-10 h-10 text-slate-500" />
                     </div>
                     <h3 className="text-base font-semibold text-slate-300">
@@ -434,13 +434,13 @@ export default function App() {
                 ) : (
                   <div className="space-y-4">
                     {/* Location Summary Strip */}
-                    <div className="bg-[#070b13] border border-slate-800 p-3 rounded-lg flex flex-col gap-2">
-                      <span className="text-[10px] uppercase font-mono tracking-wider text-slate-505 block">
+                    <div className="bg-bento-canvas border border-bento-border p-3 rounded-lg flex flex-col gap-2">
+                      <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block">
                         Active Direction Blueprint
                       </span>
                       {scenes.map((scene, idx) => (
-                        <div key={idx} className="flex gap-2.5 items-center bg-[#0f1424]/60 p-2.5 rounded border border-slate-800/40 text-xs">
-                          <span className="bg-purple-950 text-purple-400 font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-purple-900/30">
+                        <div key={idx} className="flex gap-2.5 items-center bg-bento-card p-2.5 rounded border border-bento-border text-xs">
+                          <span className="bg-bento-bg text-bento-accent font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-bento-border">
                             Scene {scene.sceneNumber}
                           </span>
                           <span className="font-mono text-slate-300 uppercase tracking-tight">
@@ -457,13 +457,13 @@ export default function App() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {shots.map((shot) => (
                         <StoryboardCard
-                          key={shot.id}
-                          shot={shot}
-                          onUpdate={handleUpdateShot}
-                          onDelete={handleDeleteShot}
-                          onMove={handleMoveShot}
-                          onGenImage={handleGenImage}
-                          totalShots={shots.length}
+                           key={shot.id}
+                           shot={shot}
+                           onUpdate={handleUpdateShot}
+                           onDelete={handleDeleteShot}
+                           onMove={handleMoveShot}
+                           onGenImage={handleGenImage}
+                           totalShots={shots.length}
                         />
                       ))}
                     </div>
@@ -481,9 +481,9 @@ export default function App() {
         )}
 
         {activeTab === "help" && (
-          <div className="max-w-2xl mx-auto w-full bg-[#0b0f19] border border-slate-800 rounded-xl p-6 shadow-2xl space-y-6">
-            <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3">
-              <Film className="w-5 h-5 text-blue-400" />
+          <div className="max-w-2xl mx-auto w-full bg-bento-card border border-bento-border rounded-xl p-6 shadow-2xl space-y-6">
+            <div className="flex items-center gap-2.5 border-b border-bento-border pb-3">
+              <Film className="w-5 h-5 text-bento-accent" />
               <h2 className="font-sans font-semibold text-slate-100 uppercase tracking-wide text-sm">
                 CineForma Lab Guide & Methodologies
               </h2>
@@ -497,7 +497,7 @@ export default function App() {
               <div className="space-y-2">
                 <h3 className="font-bold text-slate-200">1. Semantic Script Tokenizer</h3>
                 <p>
-                  Our natural language parsing pipeline identifies traditional sluglines: <code className="bg-[#12192c] text-blue-400 px-1.5 py-0.5 rounded font-mono">INT.</code> or <code className="bg-[#12192c] text-blue-400 px-1.5 py-0.5 rounded font-mono">EXT.</code> followed by location headings and time parameters. Dialogue lines are tokenized to link spoken overlays directly to visual cards.
+                  Our natural language parsing pipeline identifies traditional sluglines: <code className="bg-bento-canvas text-bento-accent px-1.5 py-0.5 rounded font-mono border border-bento-border">INT.</code> or <code className="bg-bento-canvas text-bento-accent px-1.5 py-0.5 rounded font-mono border border-bento-border">EXT.</code> followed by location headings and time parameters. Dialogue lines are tokenized to link spoken overlays directly to visual cards.
                 </p>
               </div>
 
@@ -516,8 +516,8 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-[#131922] p-4 rounded-lg border border-slate-800 text-[11px] font-mono leading-relaxed space-y-1">
-              <span className="block text-slate-400 font-bold uppercase">⚡ Diagnostic Parameters:</span>
+            <div className="bg-bento-canvas p-4 rounded-lg border border-bento-border text-[11px] font-mono leading-relaxed space-y-1">
+              <span className="block text-bento-accent font-bold uppercase">⚡ Diagnostic Parameters:</span>
               <p className="text-slate-500">
                 - Port access: Bound to secure ingress Port 3000
                 <br />
@@ -531,7 +531,7 @@ export default function App() {
       </main>
 
       {/* Footer Info Area */}
-      <footer className="bg-[#04060b] border-t border-slate-900 py-4 px-6 text-center text-slate-600 text-[10px] font-mono uppercase tracking-widest mt-auto">
+      <footer className="bg-[#05060a] border-t border-bento-border py-4 px-6 text-center text-slate-600 text-[10px] font-mono uppercase tracking-widest mt-auto">
         <span>© 2026 CineForma Lab Inc. • All pre-viz data persisted locally inside app frame memory.</span>
       </footer>
     </div>

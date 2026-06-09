@@ -76,10 +76,10 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
   };
 
   return (
-    <div id="pacing-vitals-panel" className="bg-[#0b0f19] border border-slate-800 rounded-xl p-5 shadow-2xl flex flex-col gap-5">
+    <div id="pacing-vitals-panel" className="bg-bento-card border border-bento-border rounded-xl p-5 shadow-2xl flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center gap-2 pb-3 border-b border-slate-800">
-        <Activity className="w-5 h-5 text-emerald-400" />
+      <div className="flex items-center gap-2 pb-3 border-b border-bento-border">
+        <Activity className="w-5 h-5 text-bento-accent" />
         <h2 className="font-sans font-semibold text-slate-200 tracking-tight text-sm uppercase">
           Cinematic Rhythm & Pacing Vitals
         </h2>
@@ -87,7 +87,7 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
 
       {/* Grid of indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[#0f1424] border border-slate-800/60 p-3.5 rounded-lg flex flex-col justify-between">
+        <div className="bg-bento-bg border border-bento-border p-3.5 rounded-lg flex flex-col justify-between hover:border-bento-accent/35 transition-all">
           <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block mb-1">
             Total Narrative Scenes
           </span>
@@ -95,80 +95,80 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
             <span className="text-2xl font-bold text-slate-100 font-sans tracking-tight">
               {scenes.length}
             </span>
-            <span className="text-[10px] font-mono text-slate-550">Locations</span>
+            <span className="text-[10px] font-mono text-slate-500">Locations</span>
           </div>
         </div>
 
-        <div className="bg-[#0f1424] border border-slate-800/60 p-3.5 rounded-lg flex flex-col justify-between">
+        <div className="bg-bento-bg border border-bento-border p-3.5 rounded-lg flex flex-col justify-between hover:border-bento-accent/35 transition-all">
           <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block mb-1">
             Sequence Air-Time
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-emerald-400 font-sans tracking-tight">
+            <span className="text-2xl font-bold text-bento-accent font-sans tracking-tight">
               {totalDuration.toFixed(1)}s
             </span>
-            <span className="text-[10px] font-mono text-slate-550">Total</span>
+            <span className="text-[10px] font-mono text-slate-500">Total</span>
           </div>
         </div>
 
-        <div className="bg-[#0f1424] border border-slate-800/60 p-3.5 rounded-lg flex flex-col justify-between">
+        <div className="bg-bento-bg border border-bento-border p-3.5 rounded-lg flex flex-col justify-between hover:border-bento-accent/35 transition-all">
           <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block mb-1">
             Avg Shot Rhythm
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-yellow-400 font-sans tracking-tight">
+            <span className="text-2xl font-bold text-bento-accent font-sans tracking-tight">
               {avgShotDuration.toFixed(1)}s
             </span>
-            <span className="text-[10px] font-mono text-slate-550">Per Cut</span>
+            <span className="text-[10px] font-mono text-slate-500">Per Cut</span>
           </div>
         </div>
 
-        <div className="bg-[#0f1424] border border-slate-800/60 p-3.5 rounded-lg flex flex-col justify-between">
+        <div className="bg-bento-bg border border-bento-border p-3.5 rounded-lg flex flex-col justify-between hover:border-bento-accent/35 transition-all">
           <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block mb-1">
             Emotional Intensity
           </span>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-rose-500 font-sans tracking-tight">
+            <span className="text-2xl font-bold text-bento-accent font-sans tracking-tight">
               {avgIntensity.toFixed(1)}
             </span>
-            <span className="text-[10px] font-mono text-slate-550">/10 Peak</span>
+            <span className="text-[10px] font-mono text-slate-500 font-medium">/10 Peak</span>
           </div>
         </div>
       </div>
 
       {/* Recommended Audio Treatment */}
-      <div className="bg-slate-950/60 border border-slate-900 rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
+      <div className="bg-bento-canvas border border-bento-border rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-md bg-purple-950/40 border border-purple-900/60">
-            <Music className="w-5 h-5 text-purple-400" />
+          <div className="p-2 rounded-md bg-bento-card border border-bento-border">
+            <Music className="w-5 h-5 text-bento-accent" />
           </div>
           <div>
             <h4 className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
               AI Sound Design Recommendation
             </h4>
-            <p className="text-sm text-purple-300 font-medium font-sans mt-0.5">
+            <p className="text-sm text-bento-accent font-medium font-sans mt-0.5">
               {getMusicMoodRecommendation()}
             </p>
           </div>
         </div>
-        <div className="bg-[#12192e] px-2.5 py-1 rounded text-[10px] font-mono text-slate-440 flex items-center gap-1 shrink-0 border border-slate-800">
-          <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" /> Directorial Treatment
+        <div className="bg-bento-card px-2.5 py-1 rounded text-[10px] font-mono text-slate-300 flex items-center gap-1 shrink-0 border border-bento-border">
+          <Sparkles className="w-3.5 h-3.5 text-bento-accent animate-pulse" /> Directorial Treatment
         </div>
       </div>
 
       {/* SVG Rhythm Graph */}
       {shots.length > 1 && (
-        <div className="bg-[#05070e] border border-slate-900 p-4 rounded-lg flex flex-col gap-2.5">
+        <div className="bg-bento-canvas border border-bento-border p-4 rounded-lg flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
               Sequence Pacing & Dramatic Tension Waves
             </span>
             <div className="flex gap-4 text-[9px] font-mono">
-              <span className="flex items-center gap-1.5 text-sky-400">
-                <span className="w-2.5 h-0.5 bg-sky-400 block" /> Shot Pacing speed
+              <span className="flex items-center gap-1.5 text-bento-accent">
+                <span className="w-2.5 h-0.5 bg-bento-accent block" /> Shot Pacing speed
               </span>
-              <span className="flex items-center gap-1.5 text-rose-450">
-                <span className="w-2.5 h-0.5 bg-rose-500 block" /> Dramatic Intensity
+              <span className="flex items-center gap-1.5 text-slate-300">
+                <span className="w-2.5 h-0.5 bg-slate-350 block" /> Dramatic Intensity
               </span>
             </div>
           </div>
@@ -186,13 +186,13 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
 
               {/* Glowing gradients for fills */}
               <defs>
-                <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                <linearGradient id="pacingGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F27D26" stopOpacity="0.15" />
+                  <stop offset="100%" stopColor="#F27D26" stopOpacity="0" />
                 </linearGradient>
-                <linearGradient id="roseGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                <linearGradient id="intensityGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.1" />
+                  <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
                 </linearGradient>
               </defs>
 
@@ -200,13 +200,13 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
               {drawGraphPoints("pacing") && (
                 <path
                   d={`${drawGraphPoints("pacing")} L 485,95 L 15,95 Z`}
-                  fill="url(#skyGrad)"
+                  fill="url(#pacingGrad)"
                 />
               )}
               {drawGraphPoints("tension") && (
                 <path
                   d={`${drawGraphPoints("tension")} L 485,95 L 15,95 Z`}
-                  fill="url(#roseGrad)"
+                  fill="url(#intensityGrad)"
                 />
               )}
 
@@ -214,7 +214,7 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
               <path
                 d={drawGraphPoints("pacing")}
                 fill="none"
-                stroke="#38bdf8"
+                stroke="#F27D26"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -222,8 +222,8 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
               <path
                 d={drawGraphPoints("tension")}
                 fill="none"
-                stroke="#f43f5e"
-                strokeWidth="2"
+                stroke="#d1d5db"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
@@ -242,8 +242,8 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
 
                 return (
                   <g key={idx}>
-                    <circle cx={x} cy={yPac} r="3" fill="#070a12" stroke="#38bdf8" strokeWidth="1.5" />
-                    <circle cx={x} cy={yTen} r="3" fill="#070a12" stroke="#f43f5e" strokeWidth="1.5" />
+                    <circle cx={x} cy={yPac} r="3" fill="#0A0B0E" stroke="#F27D26" strokeWidth="1.5" />
+                    <circle cx={x} cy={yTen} r="3" fill="#0A0B0E" stroke="#d1d5db" strokeWidth="1.5" />
                   </g>
                 );
               })}

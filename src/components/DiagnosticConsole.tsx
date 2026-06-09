@@ -29,11 +29,11 @@ export default function DiagnosticConsole({ logs, isPinnedOpen = true }: Diagnos
   };
 
   return (
-    <div id="diagnostic-console-panel" className="bg-[#090c15] border border-slate-800 rounded-xl overflow-hidden shadow-2xl flex flex-col mt-4">
+    <div id="diagnostic-console-panel" className="bg-bento-card border border-bento-border rounded-xl overflow-hidden shadow-2xl flex flex-col mt-4">
       {/* Console Top Indicator */}
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-[#0f1424] px-4 py-3 border-b border-slate-800 flex items-center justify-between cursor-pointer hover:bg-[#151b30] transition-colors"
+        className="bg-bento-panel px-4 py-3 border-b border-bento-border flex items-center justify-between cursor-pointer hover:bg-bento-bg/55 transition-colors"
       >
         <div className="flex items-center gap-2">
           <Terminal className="w-4 h-4 text-emerald-400" />
@@ -54,7 +54,7 @@ export default function DiagnosticConsole({ logs, isPinnedOpen = true }: Diagnos
 
       {/* Logging Textbox */}
       {isOpen && (
-        <div className="p-4 bg-[#05070e] h-60 overflow-y-auto font-mono text-[11px] leading-relaxed flex flex-col gap-2">
+        <div className="p-4 bg-bento-canvas h-60 overflow-y-auto font-mono text-[11px] leading-relaxed flex flex-col gap-2">
           {logs.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-600 gap-2 font-mono">
               <Terminal className="w-8 h-8 opacity-30 text-slate-400" />
@@ -64,7 +64,7 @@ export default function DiagnosticConsole({ logs, isPinnedOpen = true }: Diagnos
             logs.map((log, idx) => {
               const formattedTime = new Date(log.timestamp).toLocaleTimeString([], { hour12: false });
               return (
-                <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3 border-b border-slate-900/50 pb-1.5">
+                <div key={idx} className="flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-3 border-b border-bento-border/40 pb-1.5">
                   <span className="text-slate-600 shrink-0 text-[10px] pt-0.5">{formattedTime}</span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className={`text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded border ${getStepColorClass(log.step)}`}>
