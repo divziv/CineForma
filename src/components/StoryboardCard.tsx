@@ -29,6 +29,11 @@ interface StoryboardCardProps {
   onMove: (id: string, direction: "left" | "right") => void;
   onGenImage: (id: string, prompt: string) => Promise<string | undefined>;
   totalShots: number;
+  highlighted?: boolean;
+  onSelect?: (id: string) => void;
+  onDragStart?: (e: React.DragEvent, id: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent, targetId: string) => void;
 }
 
 export default function StoryboardCard({
@@ -37,7 +42,12 @@ export default function StoryboardCard({
   onDelete,
   onMove,
   onGenImage,
-  totalShots
+  totalShots,
+  highlighted = false,
+  onSelect,
+  onDragStart,
+  onDragOver,
+  onDrop
 }: StoryboardCardProps) {
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -71,6 +81,39 @@ export default function StoryboardCard({
   const [editAngle, setEditAngle] = useState(shot.cameraMetadata.angle);
   const [editLens, setEditLens] = useState(shot.cameraMetadata.lens);
   const [editMotion, setEditMotion] = useState(shot.cameraMetadata.motion);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [descError, setDescError] = useState<string | null>(null);
+
+  const handleAutoDescribe = async () => {
+    setIsGeneratingDesc(true);
+    setDescError(null);
+    try {
+      const response = await fetch("/api/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editTitle,
+          cameraAngle: editAngle,
+          cameraLens: editLens,
+          cameraMotion: editMotion,
+          generationPrompt: shot.generationPrompt
+        })
+      });
+      if (!response.ok) {
+        throw new Error("Failed to communicate with description pipeline.");
+      }
+      const data = await response.json();
+      if (data.description) {
+        setEditAction(data.description);
+      } else {
+        throw new Error("No description generated in response.");
+      }
+    } catch (err: any) {
+      setDescError(err.message || "Failed to auto-generate description.");
+    } finally {
+      setIsGeneratingDesc(false);
+    }
+  };
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -338,7 +381,17 @@ export default function StoryboardCard({
   };
 
   return (
-    <div id={`shot-card-${shot.id}`} className="bg-bento-card border border-bento-border rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-bento-accent/50 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.55)] transition-all duration-300 group">
+    <div 
+      id={`shot-card-${shot.id}`} 
+      onClick={() => onSelect?.(shot.id)}
+      draggable={true}
+      onDragStart={(e) => onDragStart?.(e, shot.id)}
+      onDragOver={(e) => onDragOver?.(e)}
+      onDrop={(e) => onDrop?.(e, shot.id)}
+      className={`bg-bento-card border rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-bento-accent/50 hover:border-bento-accent hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.55)] transition-all duration-300 group cursor-grab active:cursor-grabbing ${
+        highlighted ? "ring-2 ring-bento-accent border-bento-accent shadow-[0_0_20px_rgba(242,125,38,0.3)] bg-slate-900/40" : "border-bento-border"
+      }`}
+    >
       {/* Visual Frame Block (Procedural Canvas or Generated AI Image) */}
       <div className="relative aspect-video w-full bg-bento-canvas overflow-hidden group-hover:shadow-[0_0_25px_rgba(242,125,38,0.22)] transition-all z-10">
         {isGenerating && (
@@ -444,13 +497,40 @@ export default function StoryboardCard({
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-mono text-slate-400 mb-0.5">Action & Narrative Scene</label>
+                <div className="flex justify-between items-center mb-0.5">
+                  <label className="block text-[10px] font-mono text-slate-400">Action & Narrative Scene</label>
+                  <button
+                    type="button"
+                    onClick={handleAutoDescribe}
+                    disabled={isGeneratingDesc}
+                    className="text-[9px] font-mono font-semibold text-bento-accent hover:text-orange-500 disabled:text-slate-600 flex items-center gap-1 cursor-pointer transition-colors"
+                    title="Render action description with Gemini"
+                  >
+                    {isGeneratingDesc ? (
+                      <>
+                        <svg className="animate-spin h-2.5 w-2.5 text-bento-accent" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span>Describing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-2.5 h-2.5" />
+                        <span>AI Describe</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <textarea
                   value={editAction}
                   onChange={(e) => setEditAction(e.target.value)}
-                  rows={2}
-                  className="w-full bg-bento-bg border border-bento-border rounded px-2 py-1 text-xs text-slate-300 font-sans focus:outline-none focus:border-bento-accent resize-none"
+                  rows={3}
+                  className="w-full bg-bento-bg border border-bento-border rounded px-2 py-1 text-xs text-slate-300 font-sans focus:outline-none focus:border-bento-accent resize-none animate-fade-in"
                 />
+                {descError && (
+                  <span className="text-[9px] font-mono text-red-400 block mt-0.5">⚠️ {descError}</span>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>

@@ -280,6 +280,48 @@ Structure your complete response precisely to match the requested JSON schema.`;
     }
   });
 
+  // POST /api/generate-description
+  // Uses Gemini to auto-generate a concise cinematic description based on shot metadata
+  app.post("/api/generate-description", async (req, res) => {
+    const { title, cameraAngle, cameraLens, cameraMotion, generationPrompt } = req.body;
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+      const angleDesc = cameraAngle ? `shot from a ${cameraAngle} angle` : "captured beautifully";
+      const lensDesc = cameraLens ? `using a cinematic ${cameraLens} lens` : "with intense artistic depth";
+      const motionDesc = cameraMotion ? `empowered by a ${cameraMotion} camera movement` : "";
+      const generated = `A mesmerizing scene of "${title || "Pre-viz Scene"}", ${angleDesc} ${lensDesc}. The visual narrative highlights ${generationPrompt || "the focal elements"} ${motionDesc}, establishing deep cinematic gravitas and flawless emotional alignment.`;
+      return res.json({ description: generated });
+    }
+
+    try {
+      const ai = getGeminiClient();
+      const prompt = `You are an expert film director's assistant. Help write a concise action/scene description (2-3 sentences max) for a storyboard shot card.
+Here is the context:
+- Shot Title: ${title || "Untitled Shot"}
+- Camera Angle: ${cameraAngle || "Not specified"}
+- Lens: ${cameraLens || "Not specified"}
+- Motion: ${cameraMotion || "Not specified"}
+- Pre-viz Prompt: ${generationPrompt || "Not specified"}
+
+Write a highly descriptive, professional filmmaker-style action description detailing what happens in this cinematic frame. Do not use conversational preambles like "Sure, here is..." or "Here is the description." Output only the concise description paragraph.`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt
+      });
+
+      const responseText = response.text?.trim();
+      if (!responseText) {
+        throw new Error("Empty description generated from Gemini model.");
+      }
+      return res.json({ description: responseText });
+    } catch (err: any) {
+      console.error("AI Description Generation Error:", err);
+      return res.status(500).json({ error: err.message || "Failed to generate description from AI pipeline" });
+    }
+  });
+
   // Vite middleware setup or production content
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

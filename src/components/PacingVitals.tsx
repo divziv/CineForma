@@ -10,9 +10,10 @@ import { Activity, Music, TrendingUp, Sparkles, Film, Percent } from "lucide-rea
 interface PacingVitalsProps {
   scenes: SceneMetadata[];
   shots: ShotAsset[];
+  onUpdateAllShots?: (updatedShots: ShotAsset[]) => void;
 }
 
-export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
+export default function PacingVitals({ scenes, shots, onUpdateAllShots }: PacingVitalsProps) {
   // Aggregate stats
   const totalShots = shots.length;
   const totalDuration = shots.reduce((sum, s) => sum + s.durationSeconds, 0);
@@ -22,6 +23,31 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
   const avgIntensity = scenes.length > 0 
     ? (scenes.reduce((sum, s) => sum + s.emotionalIntensity, 0) / scenes.length) 
     : 0;
+
+  const handleSyncAllSceneColors = () => {
+    if (!onUpdateAllShots || shots.length === 0) return;
+    
+    let updatedShots = [...shots];
+    const uniqueScenes = Array.from(new Set(shots.map(s => s.sceneNumber)));
+    
+    uniqueScenes.forEach(scNum => {
+      const sceneShots = updatedShots.filter(s => s.sceneNumber === scNum);
+      if (sceneShots.length > 1) {
+        const targetColors = [...sceneShots[0].themeColors];
+        updatedShots = updatedShots.map(s => {
+          if (s.sceneNumber === scNum) {
+            return {
+              ...s,
+              themeColors: targetColors
+            };
+          }
+          return s;
+        });
+      }
+    });
+    
+    onUpdateAllShots(updatedShots);
+  };
 
   // Recommended Sound Design Mood based on intensity & pace
   const getMusicMoodRecommendation = () => {
@@ -78,11 +104,24 @@ export default function PacingVitals({ scenes, shots }: PacingVitalsProps) {
   return (
     <div id="pacing-vitals-panel" className="bg-bento-card border border-bento-border rounded-xl p-5 shadow-2xl flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center gap-2 pb-3 border-b border-bento-border">
-        <Activity className="w-5 h-5 text-bento-accent" />
-        <h2 className="font-sans font-semibold text-slate-200 tracking-tight text-sm uppercase">
-          Cinematic Rhythm & Pacing Vitals
-        </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-bento-border">
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-bento-accent" />
+          <h2 className="font-sans font-semibold text-slate-200 tracking-tight text-sm uppercase">
+            Cinematic Rhythm & Pacing Vitals
+          </h2>
+        </div>
+        {onUpdateAllShots && shots.length > 0 && (
+          <button
+            id="btn-sync-all-scene-colors"
+            onClick={handleSyncAllSceneColors}
+            className="self-start sm:self-auto bg-bento-canvas hover:bg-slate-900 border border-bento-accent/30 text-bento-accent hover:border-bento-accent text-[11px] font-mono px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer uppercase font-bold"
+            title="Applies a uniform color grade theme to all shots within the same scene based on the first shot of each scene."
+          >
+            <Sparkles className="w-3.5 h-3.5 text-bento-accent animate-pulse" />
+            <span>Sync All Scene Themes</span>
+          </button>
+        )}
       </div>
 
       {/* Grid of indicators */}

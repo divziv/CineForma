@@ -30,6 +30,134 @@ export default function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState<"workspace" | "vitals" | "help">("workspace");
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeShotId, setActiveShotId] = useState<string | null>(null);
+  const [draggingShotId, setDraggingShotId] = useState<string | null>(null);
+
+  // Drag-and-drop mechanics for StoryboardCards
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggingShotId(id);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", id);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    const sourceId = draggingShotId || e.dataTransfer.getData("text/plain");
+    if (!sourceId || sourceId === targetId) return;
+
+    const sourceIndex = shots.findIndex(s => s.id === sourceId);
+    const targetIndex = shots.findIndex(s => s.id === targetId);
+
+    if (sourceIndex === -1 || targetIndex === -1) return;
+
+    const updatedShots = [...shots];
+    const [removed] = updatedShots.splice(sourceIndex, 1);
+    updatedShots.splice(targetIndex, 0, removed);
+
+    // Re-rank sequence indices
+    const finalized = updatedShots.map((s, idx) => ({
+      ...s,
+      sequenceId: idx + 1
+    }));
+
+    setShots(finalized);
+    setDraggingShotId(null);
+
+    setLogs(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      step: "SYSTEM",
+      message: `Visually reordered shots via drag-and-drop. Moved shot ${sourceId} to target ${targetId}.`
+    }]);
+  };
+
+  // Compute filtered list of shots
+  const isFiltering = searchQuery.trim().length > 0;
+  const filteredShots = shots.filter(shot => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase().trim();
+    
+    // Check if query is looking for scene, such as "scene 1", "scene: 2", or "2"
+    const matchSceneLabel = query.match(/(?:scene\s*[:\s]*)?([0-9]+)/);
+    if (matchSceneLabel) {
+      const requestedSceneNum = parseInt(matchSceneLabel[1], 10);
+      if (shot.sceneNumber === requestedSceneNum) {
+        return true;
+      }
+    }
+    
+    return shot.title.toLowerCase().includes(query) || (shot.generationPrompt || "").toLowerCase().includes(query);
+  });
+
+  // Global Keyboard Shortcuts Effect
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isInputActive = activeEl && (
+        activeEl.tagName === "INPUT" || 
+        activeEl.tagName === "TEXTAREA" || 
+        activeEl.getAttribute("contenteditable") === "true"
+      );
+
+      // 1. Ctrl+S or Cmd+S -> Export project
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        downloadJSON();
+        return;
+      }
+
+      // 2. Ctrl+N or Cmd+N -> Add custom shot
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        handleAddCustomShot();
+        return;
+      }
+
+      if (isInputActive) return;
+
+      // 3. Arrow Keys to navigate between StoryboardCards
+      const currentDeck = isFiltering ? filteredShots : shots;
+      if (currentDeck.length === 0) return;
+
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveShotId(prevId => {
+          const currentIndex = currentDeck.findIndex(s => s.id === prevId);
+          const nextIndex = currentIndex === -1 ? 0 : Math.min(currentDeck.length - 1, currentIndex + 1);
+          const nextId = currentDeck[nextIndex].id;
+          
+          const el = document.getElementById(`shot-card-${nextId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+          return nextId;
+        });
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveShotId(prevId => {
+          const currentIndex = currentDeck.findIndex(s => s.id === prevId);
+          const prevIndex = currentIndex === -1 ? currentDeck.length - 1 : Math.max(0, currentIndex - 1);
+          const nextId = currentDeck[prevIndex].id;
+          
+          const el = document.getElementById(`shot-card-${nextId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+          return nextId;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+    };
+  }, [shots, filteredShots, isFiltering]);
 
   // On mount, load initial screenplay analysis using the offline preset data
   // This guarantees when the app loads, it has interactive data ready-to-test
@@ -452,6 +580,32 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
           </div>
         </div>
 
+        {/* Search filtration bar in header */}
+        <div id="search-filter-container" className="flex-1 max-w-xs mx-0 md:mx-4 w-full relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            id="search-input-header"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search scene (e.g. 2) or title keyword..."
+            className="w-full bg-bento-canvas text-slate-200 placeholder-slate-500 text-xs rounded-lg border border-bento-border transition-all pl-9 pr-9 py-2 focus:outline-none focus:border-bento-accent font-sans"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 font-sans text-xs cursor-pointer"
+              title="Clear search filter"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
         <div className="flex flex-wrap items-center gap-3">
           {/* Global workspace tabs */}
           <div className="flex items-center gap-1.5 bg-bento-canvas p-1 rounded-lg border border-bento-border animate-fade-in">
@@ -609,20 +763,36 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                       ))}
                     </div>
 
-                    {/* Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      {shots.map((shot) => (
-                        <StoryboardCard
-                           key={shot.id}
-                           shot={shot}
-                           onUpdate={handleUpdateShot}
-                           onDelete={handleDeleteShot}
-                           onMove={handleMoveShot}
-                           onGenImage={handleGenImage}
-                           totalShots={shots.length}
-                        />
-                      ))}
-                    </div>
+                    {filteredShots.length === 0 && isFiltering ? (
+                      <div className="py-10 text-center bg-bento-canvas/40 border border-bento-border rounded-xl p-6">
+                        <p className="text-xs text-slate-400 font-sans">No shots found matching "{searchQuery}"</p>
+                        <button
+                          onClick={() => setSearchQuery("")}
+                          className="mt-2 text-xs font-mono font-bold text-bento-accent hover:underline cursor-pointer uppercase"
+                        >
+                          Clear Filter
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        {filteredShots.map((shot) => (
+                          <StoryboardCard
+                             key={shot.id}
+                             shot={shot}
+                             onUpdate={handleUpdateShot}
+                             onDelete={handleDeleteShot}
+                             onMove={handleMoveShot}
+                             onGenImage={handleGenImage}
+                             totalShots={shots.length}
+                             highlighted={shot.id === activeShotId}
+                             onSelect={(id) => setActiveShotId(id)}
+                             onDragStart={handleDragStart}
+                             onDragOver={handleDragOver}
+                             onDrop={handleDrop}
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -632,7 +802,7 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
 
         {activeTab === "vitals" && (
           <div className="max-w-4xl mx-auto w-full">
-            <PacingVitals scenes={scenes} shots={shots} />
+            <PacingVitals scenes={scenes} shots={shots} onUpdateAllShots={setShots} />
           </div>
         )}
 
