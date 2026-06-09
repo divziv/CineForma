@@ -41,9 +41,27 @@ export default function StoryboardCard({
 }: StoryboardCardProps) {
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
+
+  // Simulated progress during rendering
+  useEffect(() => {
+    let interval: any;
+    if (isGenerating) {
+      setGenerationProgress(5);
+      interval = setInterval(() => {
+        setGenerationProgress((prev) => {
+          if (prev >= 92) return prev;
+          return prev + Math.floor(Math.random() * 15 + 4);
+        });
+      }, 250);
+    } else {
+      setGenerationProgress(0);
+    }
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   // Edit states
   const [editTitle, setEditTitle] = useState(shot.title);
@@ -320,9 +338,24 @@ export default function StoryboardCard({
   };
 
   return (
-    <div id={`shot-card-${shot.id}`} className="bg-bento-card border border-bento-border rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-bento-accent/50 transition-all group">
+    <div id={`shot-card-${shot.id}`} className="bg-bento-card border border-bento-border rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-bento-accent/50 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.55)] transition-all duration-300 group">
       {/* Visual Frame Block (Procedural Canvas or Generated AI Image) */}
-      <div className="relative aspect-video w-full bg-bento-canvas overflow-hidden group-hover:shadow-[0_0_20px_rgba(242,125,38,0.15)] transition-all">
+      <div className="relative aspect-video w-full bg-bento-canvas overflow-hidden group-hover:shadow-[0_0_25px_rgba(242,125,38,0.22)] transition-all z-10">
+        {isGenerating && (
+          <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-4 z-20 animate-pulse duration-1000">
+            <div className="flex items-center gap-1.5 mb-2 text-bento-accent animate-bounce">
+              <Sparkles className="w-4 h-4 text-bento-accent" />
+              <span className="font-mono text-[10px] font-bold uppercase tracking-wider">RENDERING PRE-VIZ...</span>
+            </div>
+            <div className="w-3/4 bg-slate-900 border border-bento-border h-1.5 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-bento-accent transition-all duration-200"
+                style={{ width: `${generationProgress}%` }}
+              />
+            </div>
+            <span className="text-[9px] font-mono text-slate-400 mt-1">{generationProgress}% READY</span>
+          </div>
+        )}
         {aiImageUrl ? (
           <img
             src={aiImageUrl}
@@ -579,9 +612,25 @@ export default function StoryboardCard({
           )}
 
           {/* Core Sequencing controls */}
-          <div className="flex items-center justify-between pt-1">
-            <div className="flex gap-1.5">
+          <div className="flex items-center justify-between pt-1 gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[10px] font-mono text-slate-500 uppercase shrink-0">Flow:</span>
+              <select
+                id={`transition-select-${shot.id}`}
+                value={shot.transition || "Cut"}
+                onChange={(e) => onUpdate({ ...shot, transition: e.target.value as any })}
+                className="bg-bento-canvas border border-bento-border text-slate-300 font-mono text-[10px] rounded px-1.5 py-1 focus:outline-none focus:border-bento-accent cursor-pointer transition-colors max-w-[100px]"
+                title="Select Transition Flow Style"
+              >
+                <option value="Cut" className="bg-bento-bg text-slate-200">Cut ✂️</option>
+                <option value="Dissolve" className="bg-bento-bg text-slate-200">Dissolve 🌫️</option>
+                <option value="Fade" className="bg-bento-bg text-slate-200">Fade 🎬</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1">
               <button
+                id={`btn-move-left-${shot.id}`}
                 onClick={() => onMove(shot.id, "left")}
                 disabled={shot.sequenceId <= 1}
                 className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer"
@@ -590,6 +639,7 @@ export default function StoryboardCard({
                 <ArrowLeft className="w-3.5 h-3.5" />
               </button>
               <button
+                id={`btn-move-right-${shot.id}`}
                 onClick={() => onMove(shot.id, "right")}
                 disabled={shot.sequenceId >= totalShots}
                 className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer"
@@ -599,6 +649,7 @@ export default function StoryboardCard({
               </button>
             </div>
             <button
+              id={`btn-delete-shot-${shot.id}`}
               onClick={() => onDelete(shot.id)}
               className="text-slate-500 hover:text-red-400 hover:bg-bento-bg/50 p-1.5 rounded transition-all cursor-pointer"
               title="Delete Shot"

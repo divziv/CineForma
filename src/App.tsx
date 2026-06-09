@@ -19,7 +19,8 @@ import {
   HelpCircle, 
   Tv, 
   Clapperboard, 
-  Video 
+  Video,
+  Download
 } from "lucide-react";
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
   const [logs, setLogs] = useState<PipelineTraceLog[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState<"workspace" | "vitals" | "help">("workspace");
+  const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
 
   // On mount, load initial screenplay analysis using the offline preset data
   // This guarantees when the app loads, it has interactive data ready-to-test
@@ -272,6 +274,116 @@ export default function App() {
     ]);
   };
 
+  const downloadJSON = () => {
+    const totalDuration = shots.reduce((acc, s) => acc + s.durationSeconds, 0);
+    const avgShotDuration = shots.length > 0 ? totalDuration / shots.length : 0;
+    const avgIntensity = scenes.length > 0 
+      ? scenes.reduce((acc, s) => acc + s.emotionalIntensity, 0) / scenes.length 
+      : 0;
+
+    const exportData = {
+      productionTitle: "CineForma Pre-Visualization Blueprints",
+      exportedAt: new Date().toISOString(),
+      vitals: {
+        totalScenes: scenes.length,
+        sequenceAirTimeSeconds: totalDuration,
+        avgShotDurationSeconds: avgShotDuration,
+        avgEmotionalIntensity: avgIntensity,
+      },
+      scenes: scenes,
+      shots: shots
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CineForma-Production-Package-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setLogs(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      step: "SYSTEM",
+      message: "Exported CineForma production package as structured JSON successfully."
+    }]);
+  };
+
+  const downloadProductionCallSheet = () => {
+    const totalDuration = shots.reduce((acc, s) => acc + s.durationSeconds, 0);
+    const avgShotDuration = shots.length > 0 ? totalDuration / shots.length : 0;
+    const avgIntensity = scenes.length > 0 
+      ? scenes.reduce((acc, s) => acc + s.emotionalIntensity, 0) / scenes.length 
+      : 0;
+
+    let text = `================================================================================
+CINEFORMA PRE-VISUALIZATION CALL SHEET & BLUEPRINTS
+================================================================================
+Exported On: ${new Date().toLocaleDateString()}
+Total Scenes: ${scenes.length}
+Total Shots: ${shots.length}
+Total Estimated Duration: ${totalDuration.toFixed(2)} seconds
+Avg Shot Pace: ${avgShotDuration.toFixed(2)}s per cut
+Average Emotional Intensity: ${avgIntensity.toFixed(1)}/10
+
+================================================================================
+SCENE METADATA SUMMARY
+================================================================================
+`;
+
+    scenes.forEach((sc) => {
+      text += `Scene #${sc.sceneNumber} | ${sc.locationType} ${sc.setting} - ${sc.timeOfDay}
+-> Lighting: ${sc.lightingMood}
+-> Emotional Peak: ${sc.emotionalIntensity}/10 | Pace Flow: ${sc.paceValue}/10
+-> Summary: "${sc.summary}"
+--------------------------------------------------------------------------------
+`;
+    });
+
+    text += `
+================================================================================
+CHRONOLOGICAL SHOT & STORYBOARD LISTING
+================================================================================
+`;
+
+    shots.forEach((sh) => {
+      text += `Shot #${sh.sequenceId} (ID: ${sh.id})
+-> Title: ${sh.title}
+-> Duration: ${sh.durationSeconds.toFixed(1)}s (Transition: ${sh.transition || "Cut"})
+-> Camera: ${sh.cameraMetadata.angle} | Lens: ${sh.cameraMetadata.lens} | Motion: ${sh.cameraMetadata.motion}
+-> Theme Colors: ${sh.themeColors.join(", ")}
+-> Action Setup: ${sh.actionDescription}
+`;
+      if (sh.characterInShot) {
+        text += `-> Focus: ${sh.characterInShot}
+-> Dialogue: "${sh.dialogueText || ""}"
+`;
+      }
+      text += `--------------------------------------------------------------------------------
+`;
+    });
+
+    text += `\n© 2026 CineForma Lab Inc. All rights reserved.\n`;
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CineForma-Call-Sheet-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setLogs(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      step: "SYSTEM",
+      message: "Exported production call sheet summary (.txt) successfully."
+    }]);
+  };
+
   // Fallback parses algorithm matching server logic to prevent empty state on API failures
   const parseMockLocally = (text: string, currentLogs: PipelineTraceLog[]): { scenes: SceneMetadata[]; shots: ShotAsset[] } => {
     const lines = text.split("\n");
@@ -320,7 +432,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-bento-bg text-slate-100 flex flex-col font-sans selection:bg-bento-accent selection:text-black">
       {/* Studio Header Nav */}
-      <header className="bg-bento-card border-b border-bento-border px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-0 z-40 shadow-md">
+      <header className="bg-bento-card border-b border-bento-border px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-0 z-40 shadow-md">
         <div className="flex items-center gap-3">
           <div className="bg-gradient-to-tr from-orange-500 to-bento-accent p-2.5 rounded-lg shadow-md flex items-center justify-center">
             <Clapperboard className="w-6 h-6 text-black" />
@@ -340,39 +452,83 @@ export default function App() {
           </div>
         </div>
 
-        {/* Global workspace tabs */}
-        <div className="flex items-center gap-1.5 bg-bento-canvas p-1 rounded-lg border border-bento-border">
-          <button
-            onClick={() => setActiveTab("workspace")}
-            className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
-              activeTab === "workspace"
-                ? "bg-bento-card text-bento-accent shadow-sm border border-bento-border"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Video className="w-4 h-4" /> Studio Board
-          </button>
-          <button
-            onClick={() => setActiveTab("vitals")}
-            disabled={shots.length === 0}
-            className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-              activeTab === "vitals"
-                ? "bg-bento-card text-bento-accent shadow-sm border border-bento-border"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Sliders className="w-4 h-4" /> Rhythm Vitals
-          </button>
-          <button
-            onClick={() => setActiveTab("help")}
-            className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
-              activeTab === "help"
-                ? "bg-bento-card text-bento-accent shadow-xs border border-bento-border"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" /> Lab Guide
-          </button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Global workspace tabs */}
+          <div className="flex items-center gap-1.5 bg-bento-canvas p-1 rounded-lg border border-bento-border animate-fade-in">
+            <button
+              onClick={() => setActiveTab("workspace")}
+              className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
+                activeTab === "workspace"
+                  ? "bg-bento-card text-bento-accent shadow-sm border border-bento-border"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Video className="w-4 h-4" /> Studio Board
+            </button>
+            <button
+              onClick={() => setActiveTab("vitals")}
+              disabled={shots.length === 0}
+              className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                activeTab === "vitals"
+                  ? "bg-bento-card text-bento-accent shadow-sm border border-bento-border"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Sliders className="w-4 h-4" /> Rhythm Vitals
+            </button>
+            <button
+              onClick={() => setActiveTab("help")}
+              className={`px-3 py-1.5 rounded-md font-sans font-medium text-xs tracking-wide transition-all uppercase flex items-center gap-1.5 cursor-pointer ${
+                activeTab === "help"
+                  ? "bg-bento-card text-bento-accent shadow-xs border border-bento-border"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <HelpCircle className="w-4 h-4" /> Lab Guide
+            </button>
+          </div>
+
+          {/* Export Action Dropdown */}
+          {shots.length > 0 && (
+            <div className="relative inline-block text-left" id="header-export-selector">
+              <button
+                id="btn-trigger-export"
+                onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                className="bg-bento-accent hover:bg-orange-500 text-black font-sans font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all uppercase hover:scale-[1.02] active:scale-95"
+                title="Export Production Blueprints"
+              >
+                <Download className="w-4 h-4 text-black" />
+                <span>Export Package</span>
+              </button>
+              {isExportDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-52 bg-bento-card border border-bento-border rounded-lg shadow-2xl z-50 overflow-hidden font-mono text-[10px]">
+                  <div className="px-3 py-2 bg-bento-canvas border-b border-bento-border text-slate-400 font-bold uppercase tracking-wider">
+                    Format Selection
+                  </div>
+                  <button
+                    id="btn-export-json"
+                    onClick={() => {
+                      downloadJSON();
+                      setIsExportDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-bento-bg text-slate-200 hover:text-bento-accent flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    🚀 Structured JSON package
+                  </button>
+                  <button
+                    id="btn-export-callsheet"
+                    onClick={() => {
+                      downloadProductionCallSheet();
+                      setIsExportDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-bento-bg text-slate-200 hover:text-bento-accent flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    📄 Formatted Call Sheet (.txt)
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
