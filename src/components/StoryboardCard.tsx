@@ -664,6 +664,25 @@ export default function StoryboardCard({
             </div>
           </div>
 
+          {/* Lighting Palette Strip */}
+          <div className="bg-bento-canvas/60 border border-bento-border/60 rounded-lg p-1.5 flex items-center justify-between gap-1.5">
+            <span className="text-[9px] font-mono text-slate-500 uppercase tracking-wider font-semibold">Lighting Palette:</span>
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              {shot.themeColors.map((color, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => handleCopyColor(color, idx)}
+                  className="flex items-center gap-1 bg-slate-950/40 hover:bg-slate-900/80 px-1.5 py-0.5 rounded border border-bento-border/40 cursor-pointer select-none transition-all active:scale-95"
+                  title="Click to copy hex color"
+                >
+                  <span className="w-2.5 h-2.5 rounded-sm border border-black/40 shrink-0" style={{ backgroundColor: color }} />
+                  <span className="font-mono text-[9px] text-slate-350 uppercase font-bold">{color}</span>
+                  {copiedIndex === idx && <Check className="w-2.5 h-2.5 text-bento-accent shrink-0" />}
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Shot Timing Pacing Controls */}
           <div className="bg-bento-canvas border border-bento-border p-2 rounded-lg space-y-1">
             <div className="flex items-center justify-between text-[10px] font-mono">

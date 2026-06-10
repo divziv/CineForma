@@ -75,6 +75,25 @@ export default function App() {
     }]);
   };
 
+  // Jump viewport list to specified scene's first shot
+  const handleJumpToScene = (sceneNumber: number) => {
+    const firstShot = shots.find(s => s.sceneNumber === sceneNumber);
+    if (firstShot) {
+      setActiveShotId(firstShot.id);
+      setTimeout(() => {
+        const el = document.getElementById(`shot-card-${firstShot.id}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 50);
+      setLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        step: "SYSTEM",
+        message: `Navigated viewport to first shot of Scene #${sceneNumber} (${firstShot.title}).`
+      }]);
+    }
+  };
+
   // Compute filtered list of shots
   const isFiltering = searchQuery.trim().length > 0;
   const filteredShots = shots.filter(shot => {
@@ -745,22 +764,47 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                   <div className="space-y-4">
                     {/* Location Summary Strip */}
                     <div className="bg-bento-canvas border border-bento-border p-3 rounded-lg flex flex-col gap-2">
-                      <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block">
-                        Active Direction Blueprint
-                      </span>
-                      {scenes.map((scene, idx) => (
-                        <div key={idx} className="flex gap-2.5 items-center bg-bento-card p-2.5 rounded border border-bento-border text-xs">
-                          <span className="bg-bento-bg text-bento-accent font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-bento-border">
-                            Scene {scene.sceneNumber}
-                          </span>
-                          <span className="font-mono text-slate-300 uppercase tracking-tight">
-                            [{scene.locationType}] {scene.setting} — {scene.timeOfDay}
-                          </span>
-                          <span className="text-[10px] text-slate-500 italic hidden sm:inline ml-auto truncate max-w-xs">
-                            "{scene.summary}"
-                          </span>
-                        </div>
-                      ))}
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-mono tracking-wider text-slate-500 block">
+                          Active Direction Blueprint
+                        </span>
+                        <span className="text-[9px] font-mono text-slate-500 uppercase">
+                          🖱️ Click scene to jump to its shots
+                        </span>
+                      </div>
+                      {scenes.map((scene, idx) => {
+                        const hasShots = shots.some(s => s.sceneNumber === scene.sceneNumber);
+                        return (
+                          <div 
+                            key={idx} 
+                            onClick={() => hasShots && handleJumpToScene(scene.sceneNumber)}
+                            className={`flex gap-2.5 items-center bg-bento-card p-2.5 rounded border border-bento-border text-xs transition-all ${
+                              hasShots 
+                                ? "hover:border-bento-accent/60 hover:bg-slate-900/40 cursor-pointer group/scene" 
+                                : "opacity-50 cursor-not-allowed"
+                            }`}
+                            title={hasShots ? `Scroll viewport to Scene ${scene.sceneNumber} first shot` : "No shots generated for this scene"}
+                          >
+                            <span className="bg-bento-bg text-bento-accent font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-bento-border group-hover/scene:border-bento-accent/60 transition-all">
+                              Scene {scene.sceneNumber}
+                            </span>
+                            <span className="font-mono text-slate-300 uppercase tracking-tight group-hover/scene:text-slate-200">
+                              [{scene.locationType}] {scene.setting} — {scene.timeOfDay}
+                            </span>
+                            <span className="text-[10px] text-slate-500 italic hidden sm:inline ml-auto truncate max-w-xs group-hover/scene:text-slate-400">
+                              "{scene.summary}"
+                            </span>
+                            {hasShots ? (
+                              <span className="text-[9px] font-mono font-bold text-bento-accent/70 flex items-center gap-1 shrink-0 ml-2 group-hover/scene:text-bento-accent">
+                                <span>JUMP</span>
+                                <span className="text-xs transition-transform group-hover/scene:translate-y-0.5">↓</span>
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-mono text-slate-600 shrink-0 ml-2">EMPTY</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
 
                     {filteredShots.length === 0 && isFiltering ? (
@@ -840,6 +884,51 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                   Every camera card features direct focal details (e.g. 50mm cinematic primes or 35mm wide lenses) and camera motions (such as static layouts, tracking sweeps, and slow push-ins), simulating a physical pre-production meeting.
                 </p>
               </div>
+            </div>
+
+            {/* Keyboard Shortcuts Reference Guide */}
+            <div className="bg-bento-canvas/40 border border-bento-border rounded-lg p-5 space-y-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs bg-bento-accent/10 text-bento-accent px-1.5 py-0.5 rounded font-mono border border-bento-accent/30 font-bold">⚡ POWER-USER</span>
+                <span className="font-sans font-bold text-slate-100 text-xs uppercase tracking-wider">Keyboard Shortcuts Guide</span>
+              </div>
+              <div id="keyboard-shortcuts-grid" className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="flex items-center justify-between p-2 rounded bg-bento-canvas border border-bento-border/70">
+                  <span className="text-xs text-slate-300 font-sans">Export Project</span>
+                  <div className="flex gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">Ctrl</kbd>
+                    <span className="text-slate-500 font-mono text-[10px] self-center">+</span>
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">S</kbd>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded bg-bento-canvas border border-bento-border/70">
+                  <span className="text-xs text-slate-300 font-sans">Add Custom Shot</span>
+                  <div className="flex gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">Ctrl</kbd>
+                    <span className="text-slate-500 font-mono text-[10px] self-center">+</span>
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">N</kbd>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded bg-bento-canvas border border-bento-border/70">
+                  <span className="text-xs text-slate-300 font-sans">Next Storyboard Card</span>
+                  <div className="flex gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">Arrow Right</kbd>
+                    <span className="text-slate-400 font-mono text-[10px] self-center">/</span>
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">Down</kbd>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-2 rounded bg-bento-canvas border border-bento-border/70">
+                  <span className="text-xs text-slate-300 font-sans">Previous Storyboard Card</span>
+                  <div className="flex gap-1">
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">Arrow Left</kbd>
+                    <span className="text-slate-400 font-mono text-[10px] self-center">/</span>
+                    <kbd className="px-1.5 py-0.5 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded font-mono shadow">Up</kbd>
+                  </div>
+                </div>
+              </div>
+              <p className="text-[10px] text-slate-500 font-mono leading-relaxed italic">
+                * Note: To use navigation shortcuts key triggers, make sure you are not selected inside text writing areas.
+              </p>
             </div>
 
             <div className="bg-bento-canvas p-4 rounded-lg border border-bento-border text-[11px] font-mono leading-relaxed space-y-1">

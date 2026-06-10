@@ -6,6 +6,15 @@
 import React from "react";
 import { SceneMetadata, ShotAsset } from "../types";
 import { Activity, Music, TrendingUp, Sparkles, Film, Percent } from "lucide-react";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 
 interface PacingVitalsProps {
   scenes: SceneMetadata[];
@@ -23,6 +32,23 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
   const avgIntensity = scenes.length > 0 
     ? (scenes.reduce((sum, s) => sum + s.emotionalIntensity, 0) / scenes.length) 
     : 0;
+
+  // Prepare recharts data
+  const chartData = scenes.map((scene) => ({
+    name: `Scene ${scene.sceneNumber}`,
+    intensity: scene.emotionalIntensity,
+    setting: scene.setting,
+    pace: scene.paceValue,
+    summary: scene.summary,
+  })).sort((a, b) => {
+    const numA = parseInt(a.name.replace("Scene ", ""), 10);
+    const numB = parseInt(b.name.replace("Scene ", ""), 10);
+    return numA - numB;
+  });
+
+  const intensities = chartData.map(d => d.intensity);
+  const maxIntensity = intensities.length > 0 ? Math.max(...intensities) : 10;
+  const minIntensity = intensities.length > 0 ? Math.min(...intensities) : 1;
 
   const handleSyncAllSceneColors = () => {
     if (!onUpdateAllShots || shots.length === 0) return;
@@ -194,6 +220,141 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
           <Sparkles className="w-3.5 h-3.5 text-bento-accent animate-pulse" /> Directorial Treatment
         </div>
       </div>
+
+      {/* Narrative Arc Recharts Line Chart */}
+      {scenes.length > 0 && (
+        <div id="narrative-arc-recharts-panel" className="bg-bento-canvas border border-bento-border p-5 rounded-lg flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-bento-accent" />
+              <div className="flex flex-col">
+                <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                  Screenplay Narrative Arc Chart
+                </span>
+                <span className="text-[10px] text-slate-500 font-sans">
+                  Plots emotional intensity (1-10) across sequential scenes to map dramatic pacing
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 text-[10px] font-mono">
+              <span className="flex items-center gap-1.5 text-bento-accent">
+                <span className="w-2.5 h-2.5 rounded-full bg-bento-accent inline-block" />
+                Emotional Intensity (1-10)
+              </span>
+              <span className="flex items-center gap-1.5 text-rose-500">
+                <span className="w-2.5 h-2.5 rounded bg-rose-500 inline-block animate-pulse" />
+                Key Climax Peak
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full h-64 bg-slate-950/20 p-3 rounded-lg border border-bento-border/50">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 15, right: 30, left: -20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#64748b" 
+                  fontSize={10} 
+                  tickLine={false}
+                  axisLine={{ stroke: "rgba(255, 255, 255, 0.1)" }}
+                />
+                <YAxis 
+                  domain={[0, 10]} 
+                  stroke="#64748b" 
+                  fontSize={10}
+                  tickLine={false}
+                  axisLine={{ stroke: "rgba(255, 255, 255, 0.1)" }}
+                  ticks={[2, 4, 6, 8, 10]}
+                />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      const isPeak = data.intensity === maxIntensity;
+                      const isTrough = data.intensity === minIntensity;
+                      return (
+                        <div className="bg-slate-950 border border-bento-border p-3 rounded-lg shadow-2xl space-y-1 max-w-[240px]">
+                          <div className="flex items-center justify-between gap-2 border-b border-bento-border pb-1">
+                            <span className="font-mono text-xs font-bold text-bento-accent uppercase">{data.name}</span>
+                            {isPeak && <span className="bg-rose-950/50 text-rose-400 border border-rose-950/60 text-[8px] font-mono px-1 rounded">PEAK CLIMAX</span>}
+                            {isTrough && <span className="bg-blue-950/50 text-blue-400 border border-blue-950/60 text-[8px] font-mono px-1 rounded">TROUGH VALVE</span>}
+                          </div>
+                          <p className="text-[10px] text-slate-400 uppercase font-mono tracking-tight font-semibold">
+                            Location: {data.setting}
+                          </p>
+                          <div className="flex items-center justify-between text-xs font-sans">
+                            <span className="text-slate-300">Emotional Intensity:</span>
+                            <span className="font-bold text-slate-100">{data.intensity}/10</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs font-sans">
+                            <span className="text-slate-300">Suggested Pace:</span>
+                            <span className="font-bold text-slate-100">{data.pace}/10</span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 italic leading-snug border-t border-bento-border/50 pt-1 mt-1">
+                            "{data.summary}"
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="intensity"
+                  stroke="#F27D26"
+                  strokeWidth={3}
+                  dot={{ r: 4, strokeWidth: 2, stroke: "#0A0B0E", fill: "#F27D26" }}
+                  activeDot={{ r: 6, strokeWidth: 1, stroke: "#0A0B0E" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Peaks and Troughs Highlights Panel */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+            <div className="bg-bento-bg border border-bento-border p-3.5 rounded-lg space-y-2">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-rose-400 block">
+                🔥 Climax Peaks (Intensity &gt;= 7)
+              </span>
+              <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                {chartData.filter(d => d.intensity >= 7).length === 0 ? (
+                  <p className="text-[10px] font-sans text-slate-500 italic">No intense peak scenes detected (Intensity &gt;= 7).</p>
+                ) : (
+                  chartData.filter(d => d.intensity >= 7).map((d, index) => (
+                    <div key={index} className="flex items-center justify-between text-xs font-sans p-1.5 bg-slate-900/30 rounded border border-bento-border/30">
+                      <span className="font-semibold text-slate-300 truncate mr-1">{d.name}: {d.setting}</span>
+                      <span className="font-mono text-rose-400 font-bold bg-rose-950/20 px-1.5 py-0.5 rounded border border-rose-950/60 uppercase text-[9px] shrink-0">{d.intensity} Intensity</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="bg-bento-bg border border-bento-border p-3.5 rounded-lg space-y-2">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-sky-400 block">
+                ❄️ Pacing Troughs (Intensity &lt;= 4)
+              </span>
+              <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                {chartData.filter(d => d.intensity <= 4).length === 0 ? (
+                  <p className="text-[10px] font-sans text-slate-500 italic">No calm valley scenes detected (Intensity &lt;= 4).</p>
+                ) : (
+                  chartData.filter(d => d.intensity <= 4).map((d, index) => (
+                    <div key={index} className="flex items-center justify-between text-xs font-sans p-1.5 bg-slate-900/30 rounded border border-bento-border/30">
+                      <span className="font-semibold text-slate-300 truncate mr-1">{d.name}: {d.setting}</span>
+                      <span className="font-mono text-sky-450 font-bold bg-sky-950/20 px-1.5 py-0.5 rounded border border-sky-950/60 uppercase text-[9px] shrink-0">{d.intensity} Intensity</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SVG Rhythm Graph */}
       {shots.length > 1 && (
