@@ -20,7 +20,8 @@ import {
   Tv, 
   Clapperboard, 
   Video,
-  Download
+  Download,
+  Trash2
 } from "lucide-react";
 
 export default function App() {
@@ -33,6 +34,46 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeShotId, setActiveShotId] = useState<string | null>(null);
   const [draggingShotId, setDraggingShotId] = useState<string | null>(null);
+  
+  // Custom states for sorting and multi-selection
+  const [sortBy, setSortBy] = useState<"sequence" | "sceneNumber" | "duration">("sequence");
+  const [selectedShotIds, setSelectedShotIds] = useState<string[]>([]);
+
+  const handleToggleSelectShot = (id: string) => {
+    setSelectedShotIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBatchDeleteSelected = () => {
+    // Keep shots that are either not selected, or are locked
+    const shotsToKeep = shots.filter(s => !selectedShotIds.includes(s.id) || s.isLocked);
+    const amountDeleted = shots.length - shotsToKeep.length;
+    
+    if (amountDeleted === 0) {
+      setLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        step: "SYSTEM",
+        message: "Batch Delete action skipped: no selected, unlocked shots found."
+      }]);
+      return;
+    }
+
+    // Re-sequence remaining shots
+    const finalized = shotsToKeep.map((s, idx) => ({
+      ...s,
+      sequenceId: idx + 1
+    }));
+
+    setShots(finalized);
+    setSelectedShotIds([]);
+
+    setLogs(prev => [...prev, {
+      timestamp: new Date().toISOString(),
+      step: "SYSTEM",
+      message: `Batch deleted ${amountDeleted} selected storyboard shot(s). Re-ordered remaining list.`
+    }]);
+  };
 
   // Drag-and-drop mechanics for StoryboardCards
   const handleDragStart = (e: React.DragEvent, id: string) => {
@@ -111,6 +152,26 @@ export default function App() {
     }
     
     return shot.title.toLowerCase().includes(query) || (shot.generationPrompt || "").toLowerCase().includes(query);
+  });
+
+  const activeShotsCount = filteredShots.length;
+  const totalDurationFiltered = filteredShots.reduce((sum, s) => sum + s.durationSeconds, 0);
+
+  const sortedFilteredShots = [...filteredShots].sort((a, b) => {
+    if (sortBy === "sceneNumber") {
+      if (a.sceneNumber !== b.sceneNumber) {
+        return a.sceneNumber - b.sceneNumber;
+      }
+      return a.sequenceId - b.sequenceId;
+    }
+    if (sortBy === "duration") {
+      if (a.durationSeconds !== b.durationSeconds) {
+        return a.durationSeconds - b.durationSeconds;
+      }
+      return a.sequenceId - b.sequenceId;
+    }
+    // Default sequence sorting
+    return a.sequenceId - b.sequenceId;
   });
 
   // Global Keyboard Shortcuts Effect
@@ -721,15 +782,47 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
             {/* Right Storyboard Pre-Viz Track Area: Span 7 */}
             <div className="lg:col-span-7 flex flex-col gap-5">
               <div className="bg-bento-card border border-bento-border rounded-xl p-5 shadow-2xl flex flex-col gap-4">
-                <div className="flex items-center justify-between border-b border-bento-border pb-3">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-bento-border pb-3.5 gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Tv className="w-5 h-5 text-bento-accent" />
                     <h2 className="font-sans font-semibold text-slate-200 tracking-tight text-sm uppercase">
-                      Cinematic Viewport Grid
+                      Cinematic Viewport Grid ({activeShotsCount} Shot{activeShotsCount !== 1 ? "s" : ""})
                     </h2>
+                    {shots.length > 0 && (
+                      <span className="bg-orange-500/10 border border-bento-accent/30 text-[10px] font-mono px-2 py-0.5 rounded text-bento-accent font-bold" title="Cumulative duration of all filtered shots combined">
+                        ⏳ {totalDurationFiltered.toFixed(1)}s TOTAL
+                      </span>
+                    )}
                   </div>
                   {shots.length > 0 && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Sorting Dropdown */}
+                      <div className="flex items-center gap-1.5 bg-bento-canvas border border-bento-border/70 px-2 py-1 rounded">
+                        <span className="text-[9px] uppercase font-mono text-slate-400">Sort:</span>
+                        <select
+                          value={sortBy}
+                          onChange={(e) => setSortBy(e.target.value as any)}
+                          className="bg-transparent text-slate-250 font-mono text-[10px] focus:outline-none cursor-pointer text-slate-200 focus:text-bento-accent"
+                          title="Choose tracking sort key for viewports"
+                        >
+                          <option value="sequence" className="bg-slate-900 border-none text-slate-300">Sequence</option>
+                          <option value="sceneNumber" className="bg-slate-900 border-none text-slate-300">Scene Num</option>
+                          <option value="duration" className="bg-slate-900 border-none text-slate-300">Duration</option>
+                        </select>
+                      </div>
+
+                      {/* Batch Delete Selected Trigger */}
+                      {selectedShotIds.length > 0 && (
+                        <button
+                          onClick={handleBatchDeleteSelected}
+                          className="bg-rose-950/50 border border-rose-500/50 hover:bg-rose-900/60 text-rose-300 text-[10px] font-mono font-bold px-2 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors uppercase animate-pulse"
+                          title={`Trash ${selectedShotIds.length} checked item(s)`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-450" />
+                          <span>Trash ({selectedShotIds.length})</span>
+                        </button>
+                      )}
+
                       <button
                         onClick={handleAddCustomShot}
                         className="bg-bento-panel hover:bg-slate-800 text-slate-100 text-xs font-sans px-2.5 py-1.5 rounded border border-bento-border flex items-center gap-1.5 cursor-pointer transition-colors"
@@ -819,7 +912,7 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {filteredShots.map((shot) => (
+                        {sortedFilteredShots.map((shot) => (
                           <StoryboardCard
                              key={shot.id}
                              shot={shot}
@@ -834,6 +927,8 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                              onDragOver={handleDragOver}
                              onDrop={handleDrop}
                              scenes={scenes}
+                             isSelected={selectedShotIds.includes(shot.id)}
+                             onToggleSelect={handleToggleSelectShot}
                           />
                         ))}
                       </div>

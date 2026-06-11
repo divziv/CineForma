@@ -40,6 +40,8 @@ interface StoryboardCardProps {
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent, targetId: string) => void;
   scenes?: SceneMetadata[];
+  isSelected?: boolean;
+  onToggleSelect?: (id: string) => void;
 }
 
 export default function StoryboardCard({
@@ -54,7 +56,9 @@ export default function StoryboardCard({
   onDragStart,
   onDragOver,
   onDrop,
-  scenes = []
+  scenes = [],
+  isSelected = false,
+  onToggleSelect
 }: StoryboardCardProps) {
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -518,13 +522,24 @@ export default function StoryboardCard({
           </button>
         </div>
 
-        {/* Framing HUD HUD details */}
-        <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
-          <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-bento-accent tracking-wider uppercase border border-bento-border">
-            SCENE {shot.sceneNumber}
+        {/* Selection Checkbox & Framing HUD details */}
+        <div className="absolute top-2 left-2 flex gap-1.5 items-center flex-wrap z-40 bg-black/75 backdrop-blur-xs pl-1.5 pr-2 py-1 rounded-lg border border-bento-border/60">
+          <input
+            id={`checkbox-select-${shot.id}`}
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelect?.(shot.id);
+            }}
+            className="w-3.5 h-3.5 accent-bento-accent bg-slate-950 border border-bento-border/70 rounded cursor-pointer pointer-events-auto shrink-0 transition-transform active:scale-95"
+            title="Select for batch actions"
+          />
+          <span className="bg-black/40 px-1 py-0.5 rounded text-[8px] font-mono font-bold text-bento-accent tracking-wider uppercase">
+            SC {shot.sceneNumber}
           </span>
-          <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-slate-350 tracking-wider border border-bento-border">
-            SHOT #{shot.sequenceId}
+          <span className="bg-black/40 px-1 py-0.5 rounded text-[8px] font-mono font-bold text-slate-350 tracking-wider">
+            #{shot.sequenceId}
           </span>
         </div>
 
