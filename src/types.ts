@@ -33,6 +33,7 @@ export interface ShotAsset {
   characterInShot?: string; // e.g. "Kai"
   durationSeconds: number;  // pacing time (1.5 - 15.0 seconds per shot)
   transition?: "Cut" | "Dissolve" | "Fade"; // transition style to next shot
+  isLocked?: boolean;       // prevent editing, dragging or deleting
 }
 
 export interface ProductionPackage {

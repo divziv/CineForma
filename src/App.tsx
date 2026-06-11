@@ -833,6 +833,7 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                              onDragStart={handleDragStart}
                              onDragOver={handleDragOver}
                              onDrop={handleDrop}
+                             scenes={scenes}
                           />
                         ))}
                       </div>

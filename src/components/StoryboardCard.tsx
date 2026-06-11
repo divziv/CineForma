@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { ShotAsset, CameraMetadata } from "../types";
+import { ShotAsset, CameraMetadata, SceneMetadata } from "../types";
 import { 
   Camera, 
   Clock, 
@@ -18,7 +18,12 @@ import {
   CheckCircle, 
   Eye, 
   Compass, 
-  Aperture 
+  Aperture,
+  Lock,
+  Unlock,
+  ZoomIn,
+  RefreshCw,
+  Move
 } from "lucide-react";
 
 interface StoryboardCardProps {
@@ -34,6 +39,7 @@ interface StoryboardCardProps {
   onDragStart?: (e: React.DragEvent, id: string) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent, targetId: string) => void;
+  scenes?: SceneMetadata[];
 }
 
 export default function StoryboardCard({
@@ -47,7 +53,8 @@ export default function StoryboardCard({
   onSelect,
   onDragStart,
   onDragOver,
-  onDrop
+  onDrop,
+  scenes = []
 }: StoryboardCardProps) {
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -380,15 +387,69 @@ export default function StoryboardCard({
     setIsEditing(false);
   };
 
+  const getMotionBadge = () => {
+    const motion = (shot.cameraMetadata.motion || "").toLowerCase();
+    
+    let text = "Static";
+    let icon = <Camera className="w-3 h-3 text-slate-400" />;
+    let style = "bg-slate-950/85 text-slate-400 border-slate-700/60";
+
+    if (motion.includes("pan") || motion.includes("panning") || motion.includes("tilt")) {
+      text = "Panning";
+      icon = <RefreshCw className="w-3 h-3 text-sky-450 animate-spin" style={{ animationDuration: "6s" }} />;
+      style = "bg-sky-950/90 text-sky-400 border-sky-850/50";
+    } else if (motion.includes("zoom") || motion.includes("zooming") || motion.includes("push") || motion.includes("pull")) {
+      text = "Zooming";
+      icon = <ZoomIn className="w-3 h-3 text-amber-450 animate-pulse" />;
+      style = "bg-amber-950/90 text-amber-450 border-amber-850/50";
+    } else if (motion.includes("track") || motion.includes("tracking") || motion.includes("follow") || motion.includes("move")) {
+      text = "Tracking";
+      icon = <Move className="w-3 h-3 text-indigo-400" />;
+      style = "bg-indigo-950/90 text-indigo-400 border-indigo-850/50";
+    } else if (motion.includes("boom") || motion.includes("crane") || motion.includes("dolly") || motion.includes("glide")) {
+      text = "Dolly Glide";
+      icon = <Compass className="w-3 h-3 text-emerald-400" />;
+      style = "bg-emerald-950/90 text-emerald-400 border-emerald-850/50";
+    } else if (motion.includes("handheld") || motion.includes("shake") || motion.includes("jiggle")) {
+      text = "Handheld";
+      icon = <Sparkles className="w-3 h-3 text-rose-450" />;
+      style = "bg-rose-950/90 text-rose-400 border-rose-850/50";
+    } else if (motion && motion !== "static") {
+      text = shot.cameraMetadata.motion;
+      icon = <Compass className="w-3 h-3 text-bento-accent" />;
+      style = "bg-orange-950/90 text-bento-accent border-orange-850/50";
+    }
+
+    return (
+      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono border uppercase tracking-wider ${style}`} title={`Camera Work: ${shot.cameraMetadata.motion}`}>
+        {icon}
+        <span>{text}</span>
+      </span>
+    );
+  };
+
+  const matchingScene = scenes.find(s => s.sceneNumber === shot.sceneNumber);
+  const lightingMoodText = matchingScene?.lightingMood || "Cinematic atmosphere";
+
   return (
     <div 
       id={`shot-card-${shot.id}`} 
       onClick={() => onSelect?.(shot.id)}
-      draggable={true}
-      onDragStart={(e) => onDragStart?.(e, shot.id)}
+      draggable={!shot.isLocked}
+      onDragStart={(e) => {
+        if (shot.isLocked) {
+          e.preventDefault();
+          return;
+        }
+        onDragStart?.(e, shot.id);
+      }}
       onDragOver={(e) => onDragOver?.(e)}
       onDrop={(e) => onDrop?.(e, shot.id)}
-      className={`bg-bento-card border rounded-xl overflow-hidden shadow-xl flex flex-col hover:border-bento-accent/50 hover:border-bento-accent hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.55)] transition-all duration-300 group cursor-grab active:cursor-grabbing ${
+      className={`bg-bento-card border rounded-xl overflow-hidden shadow-xl flex flex-col transition-all duration-300 group ${
+        shot.isLocked 
+          ? "cursor-default select-none border-bento-border/40 opacity-95" 
+          : "cursor-grab active:cursor-grabbing hover:border-bento-accent/50 hover:border-bento-accent hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,0,0,0.55)]"
+      } ${
         highlighted ? "ring-2 ring-bento-accent border-bento-accent shadow-[0_0_20px_rgba(242,125,38,0.3)] bg-slate-900/40" : "border-bento-border"
       }`}
     >
@@ -425,6 +486,38 @@ export default function StoryboardCard({
           />
         )}
 
+        {/* Lock Shot Quick Toggle Absolute Overlay in Header */}
+        <div className="absolute top-2 right-2 flex items-center gap-1 z-35">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpdate({
+                ...shot,
+                isLocked: !shot.isLocked
+              });
+            }}
+            className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase flex items-center gap-1 shadow-md border cursor-pointer transition-all ${
+              shot.isLocked 
+                ? "bg-rose-600/90 hover:bg-rose-500 text-white border-rose-500 animate-fade-in" 
+                : "bg-black/75 hover:bg-slate-900 border-bento-border text-slate-400 hover:text-slate-200"
+            }`}
+            title={shot.isLocked ? "Shot is locked. Click to unlock assets" : "Lock shot to protect from any edits, deletions, or drags"}
+          >
+            {shot.isLocked ? (
+              <>
+                <Lock className="w-2.5 h-2.5 text-white" />
+                <span>LOCKED</span>
+              </>
+            ) : (
+              <>
+                <Unlock className="w-2.5 h-2.5 text-slate-400" />
+                <span>LOCK</span>
+              </>
+            )}
+          </button>
+        </div>
+
         {/* Framing HUD HUD details */}
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
           <span className="bg-black/75 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium text-bento-accent tracking-wider uppercase border border-bento-border">
@@ -436,15 +529,16 @@ export default function StoryboardCard({
         </div>
 
         {/* Overlaid Camera Specs */}
-        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
+        <div className="absolute bottom-2 left-2 flex flex-wrap gap-1 items-center">
           <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-bento-border uppercase">
             <Compass className="w-3 h-3 text-bento-accent" />
             {shot.cameraMetadata.angle}
           </span>
-          <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-bento-border uppercase">
+          <span className="flex items-center gap-1 bg-slate-950/85 px-1.5 py-0.5 rounded text-[9px] font-mono text-slate-300 border border-bento-border uppercase font-bold text-slate-200">
             <Aperture className="w-3 h-3 text-emerald-400" />
             {shot.cameraMetadata.lens}
           </span>
+          {getMotionBadge()}
         </div>
 
         {/* AI Generator Overlay Panel */}
@@ -554,36 +648,83 @@ export default function StoryboardCard({
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[9px] font-mono text-slate-400 mb-0.5">Angle</label>
+                  <label className="block text-[9px] font-mono text-slate-400 mb-0.5">Camera Angle</label>
                   <input
                     type="text"
                     value={editAngle}
                     onChange={(e) => setEditAngle(e.target.value)}
-                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-bento-accent text-slate-200 font-sans"
                   />
                 </div>
                 <div>
-                  <label className="block text-[9px] font-mono text-slate-400 mb-0.5">Lens</label>
-                  <input
-                    type="text"
-                    value={editLens}
-                    onChange={(e) => setEditLens(e.target.value)}
-                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[9px] font-mono text-slate-400 mb-0.5">Motion</label>
+                  <label className="block text-[9px] font-mono text-slate-400 mb-0.5">Camera Motion</label>
                   <input
                     type="text"
                     value={editMotion}
                     onChange={(e) => setEditMotion(e.target.value)}
-                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none"
+                    className="w-full bg-bento-bg border border-bento-border rounded px-1.5 py-0.5 text-[10px] focus:outline-none focus:border-bento-accent text-slate-200 font-sans"
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-bento-border">
+
+              <div className="bg-bento-bg/85 p-2 rounded-lg border border-bento-border/60">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <label className="block text-[9px] font-mono text-slate-450 uppercase font-semibold">Cinematic Lens Profile</label>
+                  <select
+                    value={["24mm Anamorphic", "35mm Wide-Angle", "50mm Standard Prime", "85mm Telephoto Portrait"].includes(editLens) ? editLens : ""}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        setEditLens(e.target.value);
+                      }
+                    }}
+                    className="bg-bento-canvas border border-bento-border text-slate-300 font-mono text-[9px] rounded px-1 py-0.5 focus:outline-none focus:border-bento-accent cursor-pointer"
+                  >
+                    <option value="" className="bg-slate-900">Choose...</option>
+                    <option value="24mm Anamorphic" className="bg-slate-900">24mm Anamorphic 🎬</option>
+                    <option value="35mm Wide-Angle" className="bg-slate-900">35mm Wide-Angle 🖼️</option>
+                    <option value="50mm Standard Prime" className="bg-slate-900">50mm Standard Prime 👁️</option>
+                    <option value="85mm Telephoto Portrait" className="bg-slate-900">85mm Telephoto Portrait 👤</option>
+                  </select>
+                </div>
+                <input
+                  type="text"
+                  value={editLens}
+                  onChange={(e) => setEditLens(e.target.value)}
+                  className="w-full bg-bento-canvas border border-bento-border rounded px-1.5 py-0.5 text-[11px] font-mono focus:outline-none focus:border-bento-accent text-bento-accent/90 mb-2"
+                  placeholder="e.g. 50mm Prime"
+                />
+                <div className="flex items-center gap-1">
+                  <span className="text-[8px] font-mono text-slate-500 uppercase">PRESETS:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {["24mm", "35mm", "50mm", "85mm"].map((presetLens) => {
+                      const isActive = editLens.toLowerCase().includes(presetLens);
+                      return (
+                        <button
+                          key={presetLens}
+                          type="button"
+                          onClick={() => {
+                            if (presetLens === "24mm") setEditLens("24mm Anamorphic");
+                            else if (presetLens === "35mm") setEditLens("35mm Wide-Angle");
+                            else if (presetLens === "50mm") setEditLens("50mm Standard Prime");
+                            else if (presetLens === "85mm") setEditLens("85mm Telephoto Portrait");
+                          }}
+                          className={`px-1.5 py-0.5 text-[8px] font-mono rounded border transition-all cursor-pointer ${
+                            isActive
+                              ? "bg-bento-accent/20 border-bento-accent text-bento-accent font-bold"
+                              : "bg-bento-canvas border-bento-border text-slate-400 hover:text-slate-200"
+                          }`}
+                        >
+                          {presetLens}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-bento-border/40">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
@@ -594,7 +735,7 @@ export default function StoryboardCard({
                 <button
                   type="button"
                   onClick={saveEdits}
-                  className="px-2.5 py-1 text-[10px] font-mono bg-bento-accent hover:bg-orange-500 rounded text-black font-bold cursor-pointer flex items-center gap-1"
+                  className="px-2.5 py-1 text-[10px] font-mono bg-bento-accent hover:bg-orange-500 rounded text-black font-bold cursor-pointer flex items-center gap-1 transition-colors"
                 >
                   <CheckCircle className="w-3 h-3 text-black" /> Save Specs
                 </button>
@@ -603,13 +744,15 @@ export default function StoryboardCard({
           ) : (
             <div className="space-y-2">
               <div className="flex items-start justify-between gap-1.5">
-                <h3 className="font-sans font-semibold text-slate-200 text-sm tracking-tight leading-snug group-hover:text-bento-accent transition-colors">
-                  {shot.title}
+                <h3 className="font-sans font-semibold text-slate-200 text-sm tracking-tight leading-snug group-hover:text-bento-accent transition-colors flex items-center gap-1.5">
+                  {shot.isLocked && <Lock className="w-3 h-3 text-rose-450 inline shrink-0 animate-pulse" />}
+                  <span>{shot.title}</span>
                 </h3>
                 <button
-                  onClick={() => setIsEditing(true)}
-                  className="text-slate-500 hover:text-slate-300 pointer-events-auto p-1 cursor-pointer"
-                  title="Edit Specs"
+                  onClick={() => !shot.isLocked && setIsEditing(true)}
+                  disabled={shot.isLocked}
+                  className="text-slate-500 hover:text-slate-300 pointer-events-auto p-1 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
+                  title={shot.isLocked ? "Shot is locked. Click unlock header to edit Specs" : "Edit Specs"}
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
@@ -632,6 +775,23 @@ export default function StoryboardCard({
             </div>
           )}
         </div>
+
+        {/* Cinematic Scene Atmosphere & lightingMood derived descriptors */}
+        {matchingScene && (
+          <div className="mx-4 bg-slate-950/40 border border-bento-border/40 p-2 rounded-lg flex items-center justify-between gap-2 text-slate-300">
+            <div className="flex flex-col min-w-0">
+              <span className="text-[8px] font-mono font-bold text-slate-500 uppercase tracking-widest">
+                🎬 ATMOSPHERE ({matchingScene.timeOfDay})
+              </span>
+              <span className="text-[10px] text-slate-350 truncate font-semibold" title={lightingMoodText}>
+                {lightingMoodText}
+              </span>
+            </div>
+            <div className="shrink-0 text-right bg-bento-bg/85 border border-bento-border/70 px-1.5 py-0.5 rounded text-[9px] font-mono text-bento-accent">
+              🔥 {matchingScene.emotionalIntensity}/10
+            </div>
+          </div>
+        )}
 
         {/* Interactive Timing & Slider */}
         <div className="pt-2 border-t border-bento-border flex flex-col gap-2">
@@ -699,7 +859,9 @@ export default function StoryboardCard({
               step={0.5}
               value={shot.durationSeconds}
               onChange={handleDurationChange}
-              className="w-full accent-bento-accent h-1 bg-bento-card rounded-lg cursor-pointer focus:outline-none"
+              disabled={shot.isLocked}
+              className="w-full accent-bento-accent h-1 bg-bento-card rounded-lg cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              title={shot.isLocked ? "Unlock shot to adjust duration" : "Drag to adjust durationSeconds"}
             />
           </div>
 
@@ -718,8 +880,9 @@ export default function StoryboardCard({
                 id={`transition-select-${shot.id}`}
                 value={shot.transition || "Cut"}
                 onChange={(e) => onUpdate({ ...shot, transition: e.target.value as any })}
-                className="bg-bento-canvas border border-bento-border text-slate-300 font-mono text-[10px] rounded px-1.5 py-1 focus:outline-none focus:border-bento-accent cursor-pointer transition-colors max-w-[100px]"
-                title="Select Transition Flow Style"
+                disabled={shot.isLocked}
+                className="bg-bento-canvas border border-bento-border text-slate-300 font-mono text-[10px] rounded px-1.5 py-1 focus:outline-none focus:border-bento-accent cursor-pointer transition-colors max-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed"
+                title={shot.isLocked ? "Shot is locked" : "Select Transition Flow Style"}
               >
                 <option value="Cut" className="bg-bento-bg text-slate-200">Cut ✂️</option>
                 <option value="Dissolve" className="bg-bento-bg text-slate-200">Dissolve 🌫️</option>
@@ -730,28 +893,29 @@ export default function StoryboardCard({
             <div className="flex items-center gap-1">
               <button
                 id={`btn-move-left-${shot.id}`}
-                onClick={() => onMove(shot.id, "left")}
-                disabled={shot.sequenceId <= 1}
-                className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer"
-                title="Shift Sequence Left"
+                onClick={() => !shot.isLocked && onMove(shot.id, "left")}
+                disabled={shot.isLocked || shot.sequenceId <= 1}
+                className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                title={shot.isLocked ? "Locked" : "Shift Sequence Left"}
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 id={`btn-move-right-${shot.id}`}
-                onClick={() => onMove(shot.id, "right")}
-                disabled={shot.sequenceId >= totalShots}
-                className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer"
-                title="Shift Sequence Right"
+                onClick={() => !shot.isLocked && onMove(shot.id, "right")}
+                disabled={shot.isLocked || shot.sequenceId >= totalShots}
+                className="bg-bento-canvas hover:bg-bento-bg disabled:bg-slate-900/40 disabled:text-slate-700 text-slate-300 p-1.5 rounded border border-bento-border flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                title={shot.isLocked ? "Locked" : "Shift Sequence Right"}
               >
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
             <button
               id={`btn-delete-shot-${shot.id}`}
-              onClick={() => onDelete(shot.id)}
-              className="text-slate-500 hover:text-red-400 hover:bg-bento-bg/50 p-1.5 rounded transition-all cursor-pointer"
-              title="Delete Shot"
+              onClick={() => !shot.isLocked && onDelete(shot.id)}
+              disabled={shot.isLocked}
+              className="text-slate-500 hover:text-red-400 hover:bg-bento-bg/50 p-1.5 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              title={shot.isLocked ? "Unlock shot to enable delete" : "Delete Shot"}
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
