@@ -269,13 +269,15 @@ Structure your complete response precisely to match the requested JSON schema.`;
   });
 
   // POST /api/generate-frame
-  // This endpoint leverages image generation models (gemini-2.5-flash-image) for storyboards
+  // This endpoint leverages image generation models (gemini-2.5-flash-image) for storyboards.
+  // It features an extremely robust, beautiful developer-grade SVG pre-visualizer mock fallback if the model is busy or key is undefined.
   app.post("/api/generate-frame", async (req, res) => {
     const { prompt, aspectRatio } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
-      return res.status(400).json({ error: "Missing GEMINI_API_KEY environment variable. Storyboard AI image generation requires an active key." });
+      console.warn("[IMAGE GEN] Missing key, falling back to beautiful SVG filmmaker mock frame.");
+      return res.json({ imageUrl: generateMockStoryboardSVG(prompt), isFallback: true });
     }
 
     try {
@@ -309,9 +311,8 @@ Structure your complete response precisely to match the requested JSON schema.`;
         throw new Error("No image piece found in generation feedback.");
       }
     } catch (err: any) {
-      console.error("AI Image Generation Error:", err);
-      // Return beautiful fallback illustration code or detailed error message
-      return res.status(500).json({ error: err.message || "Failed to generate image from AI pipeline" });
+      console.warn("[IMAGE GEN FAIL] Gemini generation busy or failed. Triggering filmmaking SVG pre-viz layout fallback. Error:", err.message);
+      return res.json({ imageUrl: generateMockStoryboardSVG(prompt), isFallback: true, warning: err.message });
     }
   });
 
@@ -558,6 +559,185 @@ function createTrace(
   };
   logs.push(logItem);
   console.log(`[${logItem.step}] ${logItem.message} ${details ? `(${details})` : ""}`);
+}
+
+// Generates an elegant, detailed cinematic layout SVG with full filmmaking metrics to act as the storyboard fallback
+function generateMockStoryboardSVG(prompt: string): string {
+  const p = (prompt || "").toLowerCase();
+  
+  // Extract camera technical markers
+  let angle = "MEDIUM SHOT";
+  if (p.includes("close-up") || p.includes("close up") || p.includes("ecu") || p.includes("extreme close")) angle = "CLOSE-UP";
+  else if (p.includes("establishing") || p.includes("wide shot") || p.includes("extreme wide")) angle = "WIDE ESTABLISHING";
+  else if (p.includes("dutch angle") || p.includes("canted")) angle = "DUTCH ANGLE";
+  else if (p.includes("low angle")) angle = "LOW ANGLE";
+  else if (p.includes("high angle")) angle = "HIGH ANGLE";
+  
+  let lens = "35MM";
+  if (p.includes("24mm")) lens = "24MM";
+  else if (p.includes("50mm")) lens = "50MM";
+  else if (p.includes("85mm")) lens = "85MM";
+  else if (p.includes("135mm")) lens = "135MM";
+  else if (p.includes("anamorphic")) lens = "ANAMORPHIC";
+
+  // Build colorway parameters depending on theme keywords
+  let colorStart = "#111827"; // deep slate gray
+  let colorEnd = "#030712"; // pitch black
+  let accentColor = "#6366f1"; // indigo
+  let bokeh1 = "rgba(99, 102, 241, 0.15)";
+  let bokeh2 = "rgba(168, 85, 247, 0.12)";
+  
+  if (p.includes("neon") || p.includes("pink") || p.includes("teal") || p.includes("cyberpunk") || p.includes("cyber")) {
+    colorStart = "#090514";
+    colorEnd = "#020108";
+    accentColor = "#ec4899"; // bright pink
+    bokeh1 = "rgba(236, 72, 153, 0.2)"; // neon pink
+    bokeh2 = "rgba(6, 182, 212, 0.18)"; // cyan
+  } else if (p.includes("fire") || p.includes("amber") || p.includes("warm") || p.includes("orange") || p.includes("sunset") || p.includes("gold")) {
+    colorStart = "#1a0b05";
+    colorEnd = "#070200";
+    accentColor = "#f97316"; // orange
+    bokeh1 = "rgba(249, 115, 22, 0.22)"; // warm orange
+    bokeh2 = "rgba(234, 179, 8, 0.15)"; // gold yellow
+  } else if (p.includes("forest") || p.includes("wood") || p.includes("green") || p.includes("jungle") || p.includes("emerald")) {
+    colorStart = "#021c15";
+    colorEnd = "#010806";
+    accentColor = "#10b981"; // emerald
+    bokeh1 = "rgba(16, 185, 129, 0.18)";
+    bokeh2 = "rgba(234, 179, 8, 0.12)"; // sun shafts
+  } else if (p.includes("clinical") || p.includes("lab") || p.includes("white") || p.includes("sterile") || p.includes("sci-fi")) {
+    colorStart = "#0f172a";
+    colorEnd = "#020617";
+    accentColor = "#38bdf8"; // sky blue
+    bokeh1 = "rgba(56, 189, 248, 0.16)";
+    bokeh2 = "rgba(148, 163, 184, 0.12)"; // steel silver
+  } else if (p.includes("rain") || p.includes("alley") || p.includes("blue") || p.includes("storm") || p.includes("dusk") || p.includes("night")) {
+    colorStart = "#081125";
+    colorEnd = "#02050c";
+    accentColor = "#2563eb";
+    bokeh1 = "rgba(37, 99, 235, 0.2)";
+    bokeh2 = "rgba(168, 85, 247, 0.12)";
+  }
+
+  // Draw bokeh circles
+  const circle1X = Math.floor(30 + Math.random() * 40) + "%"; // 30% - 70%
+  const circle1Y = Math.floor(25 + Math.random() * 30) + "%";
+  const circle2X = Math.floor(40 + Math.random() * 35) + "%";
+  const circle2Y = Math.floor(40 + Math.random() * 35) + "%";
+
+  const isAnamorphic = p.includes("anamorphic") || p.includes("streak") || p.includes("flare");
+
+  // Create SVG string
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="100%" height="100%" style="font-family: system-ui, -apple-system, sans-serif;">
+    <defs>
+      <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${colorStart}" />
+        <stop offset="100%" stop-color="${colorEnd}" />
+      </linearGradient>
+      <!-- Center spot highlight -->
+      <radialGradient id="centerHighlight" cx="50%" cy="50%" r="70%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.06)" />
+        <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+      </radialGradient>
+      <!-- Blur filter for depth of field / bokeh -->
+      <filter id="bokehBlur" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="35" />
+      </filter>
+      <filter id="flareBlur" x="-10%" y="-10%" width="120%" height="120%">
+        <feGaussianBlur stdDeviation="8" />
+      </filter>
+    </defs>
+
+    <!-- Canvas Background -->
+    <rect width="100%" height="100%" fill="url(#bgGrad)" />
+    <rect width="100%" height="100%" fill="url(#centerHighlight)" />
+
+    <!-- Depth Layer: Bokeh Circles (Simulated Actors / Lights) -->
+    <g filter="url(#bokehBlur)">
+      <circle cx="${circle1X}" cy="${circle1Y}" r="110" fill="${bokeh1}" />
+      <circle cx="${circle2X}" cy="${circle2Y}" r="140" fill="${bokeh2}" />
+      <!-- Subtle ground plane reflection vector -->
+      <ellipse cx="640" cy="580" rx="400" ry="80" fill="rgba(255,255,255,0.02)" />
+    </g>
+
+    <!-- Cinematic Grids & Guides (Rule of Thirds) -->
+    <g stroke="rgba(255, 255, 255, 0.08)" stroke-width="1.5" stroke-dasharray="8 8">
+      <!-- Verticals -->
+      <line x1="426" y1="0" x2="426" y2="720" />
+      <line x1="853" y1="0" x2="853" y2="720" />
+      <!-- Horizontals -->
+      <line x1="0" y1="240" x2="1280" y2="240" />
+      <line x1="0" y1="480" x2="1280" y2="480" />
+    </g>
+
+    <!-- Center Crosshair Target -->
+    <g stroke="rgba(255, 255, 255, 0.2)" stroke-width="1.5" fill="none">
+      <path d="M 640 330 L 640 350" />
+      <path d="M 640 370 L 640 390" />
+      <path d="M 610 360 L 630 360" />
+      <path d="M 650 360 L 670 360" />
+      <circle cx="640" cy="360" r="8" opacity="0.3" />
+    </g>
+
+    <!-- Bounding Safe Area Corner Markers -->
+    <g stroke="rgba(255, 255, 255, 0.35)" stroke-width="2.5" fill="none">
+      <!-- TL -->
+      <path d="M 80 120 L 80 80 L 120 80" />
+      <!-- TR -->
+      <path d="M 1200 120 L 1200 80 L 1160 80" />
+      <!-- BL -->
+      <path d="M 80 600 L 80 640 L 120 640" />
+      <!-- BR -->
+      <path d="M 1200 600 L 1200 640 L 1160 640" />
+    </g>
+
+    <!-- Subtle Lens Flare Streak if Anamorphic -->
+    ${isAnamorphic ? `
+    <g filter="url(#flareBlur)">
+      <!-- Main flare core -->
+      <ellipse cx="640" cy="360" rx="90" ry="8" fill="rgba(255,255,255,0.9)" />
+      <!-- Horizontal side bands -->
+      <line x1="100" y1="360" x2="1180" y2="360" stroke="${accentColor}" stroke-width="4" opacity="0.8" />
+      <line x1="50" y1="360" x2="1230" y2="360" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" opacity="0.9" />
+      <!-- Radial reflections -->
+      <circle cx="420" cy="360" r="15" fill="rgba(56, 189, 248, 0.25)" />
+      <circle cx="880" cy="360" r="28" fill="rgba(253, 186, 116, 0.18)" />
+    </g>
+    ` : ""}
+
+    <!-- Director / Camera Metadatas Labels (Text Overlay) -->
+    <!-- Top-Left System Status -->
+    <g fill="rgba(255, 255, 255, 0.82)" font-size="20" font-weight="bold" letter-spacing="1">
+      <circle cx="106" cy="116" r="6" fill="#ef4444" />
+      <text x="122" y="122" font-family="monospace">REC ● [PRE-VIS]</text>
+    </g>
+
+    <!-- Top-Right Timecode -->
+    <text x="1180" y="122" text-anchor="end" fill="#f97316" font-size="20" font-weight="bold" font-family="monospace" letter-spacing="1">
+      TC 01:${Math.floor(10 + Math.random() * 80)}:14:09
+    </text>
+
+    <!-- Bottom Left Spec Metadata Information -->
+    <g fill="rgba(255, 255, 255, 0.45)" font-size="14" font-family="monospace">
+      <text x="100" y="580" fill="${accentColor}" font-size="16" font-weight="bold" letter-spacing="1">CAMERA SPECIFICATION</text>
+      <text x="100" y="605">LENS: <tspan fill="#f8fafc" font-weight="bold">${lens}</tspan></text>
+      <text x="100" y="625">ANGLE: <tspan fill="#f8fafc" font-weight="bold">${angle}</tspan></text>
+      <text x="100" y="645">ASPECT RATIO: <tspan fill="#f8fafc" font-weight="bold">16:9 / CINEMATIC</tspan></text>
+    </g>
+
+    <!-- Bottom Right Status Notification -->
+    <g font-family="monospace" text-anchor="end">
+      <text x="1180" y="580" fill="rgba(255,255,255,0.3)" font-size="13" letter-spacing="2" font-weight="bold">CINEFORMA DRAFT ENGINE</text>
+      <text x="1180" y="610" fill="#f8fafc" font-size="18" font-weight="extrabold" letter-spacing="1">PRE-VISUALIZATION LAYOUT</text>
+      <text x="1180" y="635" fill="rgba(255, 255, 255, 0.55)" font-size="12">OFFLINE RENDERING MODE ACTIVE</text>
+    </g>
+
+    <!-- Subtle framing border line -->
+    <rect x="0" y="0" width="1280" height="720" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
+  </svg>`;
+  
+  const base64 = Buffer.from(svg).toString("base64");
+  return `data:image/svg+xml;base64,${base64}`;
 }
 
 startServer();
