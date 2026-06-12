@@ -32,8 +32,10 @@ export interface ShotAsset {
   dialogueText?: string;    // dialogue overlay if any
   characterInShot?: string; // e.g. "Kai"
   durationSeconds: number;  // pacing time (1.5 - 15.0 seconds per shot)
-  transition?: "Cut" | "Dissolve" | "Fade"; // transition style to next shot
+  transition?: "Cut" | "Dissolve" | "Fade" | "Fade to Black" | "Wipe"; // transition style to next shot
   isLocked?: boolean;       // prevent editing, dragging or deleting
+  isColorPaletteLocked?: boolean; // prevent themeColors from being updated on reload
+  lensFlareIntensity?: "None" | "Subtle" | "Anamorphic"; // cinematic lens flare overlay intensity
 }
 
 export interface ProductionPackage {

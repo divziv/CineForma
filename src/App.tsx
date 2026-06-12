@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SceneMetadata, ShotAsset, PipelineTraceLog } from "./types";
 import ScreenplayEditor from "./components/ScreenplayEditor";
 import StoryboardCard from "./components/StoryboardCard";
@@ -30,6 +30,13 @@ import {
 export default function App() {
   const [scenes, setScenes] = useState<SceneMetadata[]>([]);
   const [shots, setShots] = useState<ShotAsset[]>([]);
+  const previousShotsRef = useRef<ShotAsset[]>([]);
+
+  useEffect(() => {
+    if (shots && shots.length > 0) {
+      previousShotsRef.current = shots;
+    }
+  }, [shots]);
   const [logs, setLogs] = useState<PipelineTraceLog[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState<"workspace" | "vitals" | "help">("workspace");
@@ -43,6 +50,25 @@ export default function App() {
   const [selectedShotIds, setSelectedShotIds] = useState<string[]>([]);
   const [gridColumnMode, setGridColumnMode] = useState<"single" | "two">("two");
   const [displayColumns, setDisplayColumns] = useState<1 | 2>(2);
+  const [aspectRatio, setAspectRatio] = useState<"2.39:1" | "16:9" | "4:3">("16:9");
+
+  const mergeLockedPalettes = (newShots: ShotAsset[], currentShots: ShotAsset[]): ShotAsset[] => {
+    return (newShots || []).map((ns, idx) => {
+      if (!ns) return ns;
+      const matching = currentShots.find(cs => cs && cs.id === ns.id) 
+        || currentShots.find(cs => cs && cs.sceneNumber === ns.sceneNumber && cs.sequenceId === ns.sequenceId)
+        || currentShots[idx];
+        
+      if (matching && matching.isColorPaletteLocked) {
+        return {
+          ...ns,
+          themeColors: [...matching.themeColors],
+          isColorPaletteLocked: true
+        };
+      }
+      return ns;
+    });
+  };
 
   const handleToggleSelectShot = (id: string) => {
     setSelectedShotIds(prev => 
@@ -295,7 +321,7 @@ export default function App() {
         const data = await response.json();
         if (data.result) {
           setScenes(data.result.scenes || []);
-          setShots(data.result.shots || []);
+          setShots(mergeLockedPalettes(data.result.shots || [], previousShotsRef.current));
         }
         if (data.logs) {
           // Merge logs
@@ -309,7 +335,7 @@ export default function App() {
       // Fallback local mock simulation
       const localPackage = parseMockLocally(SCREENPLAY_PRESETS[0].text, currentLogs);
       setScenes(localPackage.scenes);
-      setShots(localPackage.shots);
+      setShots(mergeLockedPalettes(localPackage.shots, previousShotsRef.current));
     } finally {
       setIsAnalyzing(false);
     }
@@ -343,7 +369,7 @@ export default function App() {
       const payload = await response.json();
       if (payload.result) {
         setScenes(payload.result.scenes || []);
-        setShots(payload.result.shots || []);
+        setShots(mergeLockedPalettes(payload.result.shots || [], previousShotsRef.current));
       }
       if (payload.logs) {
         setLogs(prev => [...prev, ...payload.logs]);
@@ -360,7 +386,7 @@ export default function App() {
       // Local fallback parsing
       const fallbackResult = parseMockLocally(text, [errLog]);
       setScenes(fallbackResult.scenes);
-      setShots(fallbackResult.shots);
+      setShots(mergeLockedPalettes(fallbackResult.shots, previousShotsRef.current));
     } finally {
       setIsAnalyzing(false);
     }
@@ -869,6 +895,22 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                         )}
                       </button>
 
+                      {/* Aspect Ratio Selector */}
+                      <div className="flex items-center gap-1.5 bg-bento-canvas border border-bento-border/70 px-2 py-1.5 rounded" id="header-aspect-ratio-selector">
+                        <span className="text-[9px] uppercase font-mono text-slate-400">Aspect Ratio:</span>
+                        <select
+                          id="select-aspect-ratio"
+                          value={aspectRatio}
+                          onChange={(e) => setAspectRatio(e.target.value as any)}
+                          className="bg-transparent text-slate-200 font-mono text-[10px] focus:outline-none cursor-pointer focus:text-bento-accent"
+                          title="Switch viewport aspect ratios to simulate physical film formats"
+                        >
+                          <option value="16:9" className="bg-slate-900 border-none text-slate-300">16:9 (SD/HD)</option>
+                          <option value="2.39:1" className="bg-slate-900 border-none text-slate-350">2.39:1 (Cinematic)</option>
+                          <option value="4:3" className="bg-slate-900 border-none text-slate-300">4:3 (Academy)</option>
+                        </select>
+                      </div>
+
                       {/* Sorting Dropdown */}
                       <div className="flex items-center gap-1.5 bg-bento-canvas border border-bento-border/70 px-2 py-1.5 rounded">
                         <span className="text-[9px] uppercase font-mono text-slate-400">Sort:</span>
@@ -1002,6 +1044,7 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                              scenes={scenes}
                              isSelected={selectedShotIds.includes(shot.id)}
                              onToggleSelect={handleToggleSelectShot}
+                             aspectRatio={aspectRatio}
                           />
                         ))}
                       </div>

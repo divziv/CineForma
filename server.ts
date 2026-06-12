@@ -75,6 +75,41 @@ function getGeminiClient(): GoogleGenAI {
   return aiInstance;
 }
 
+/**
+ * Executes a Gemini generateContent call with automatic retry on transient errors (like 503 or 429).
+ */
+async function generateContentWithRetry(ai: GoogleGenAI, params: any, maxRetries = 3, initialDelayMs = 1500): Promise<any> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await ai.models.generateContent(params);
+    } catch (error: any) {
+      attempt++;
+      const errMsg = error.message || "";
+      const errStatus = error.status || error.statusCode || 0;
+      
+      const isTransient = 
+        errStatus === 503 || 
+        errStatus === 429 || 
+        errMsg.includes("503") || 
+        errMsg.includes("429") || 
+        errMsg.toLowerCase().includes("unavailable") || 
+        errMsg.toLowerCase().includes("rate limit") || 
+        errMsg.toLowerCase().includes("high demand") || 
+        errMsg.toLowerCase().includes("resource exhausted") ||
+        errMsg.toLowerCase().includes("spikes in demand");
+
+      if (!isTransient || attempt >= maxRetries) {
+        throw error;
+      }
+      
+      const delay = initialDelayMs * Math.pow(2, attempt - 1) + Math.random() * 800;
+      console.warn(`[GEMINI RETRY] Attempt ${attempt}/${maxRetries} failed with error: ${errMsg}. Retrying in ${Math.round(delay)}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -147,7 +182,7 @@ For each scene, break down 2 to 4 detailed shot cards (ShotAsset) that visually 
 
 Structure your complete response precisely to match the requested JSON schema.`;
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-3.5-flash",
         contents: `Analyze the following screenplay text and output the ProductionPackage:\n\n${scriptText}`,
         config: {
@@ -246,7 +281,7 @@ Structure your complete response precisely to match the requested JSON schema.`;
     try {
       const ai = getGeminiClient();
       // gemini-2.5-flash-image generates images via generateContent (or we can use standard flash config)
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-2.5-flash-image",
         contents: {
           parts: [{ text: prompt || "Cinematic movie frame, cinematic lighting, style consistent storyboard" }]
@@ -306,7 +341,7 @@ Here is the context:
 
 Write a highly descriptive, professional filmmaker-style action description detailing what happens in this cinematic frame. Do not use conversational preambles like "Sure, here is..." or "Here is the description." Output only the concise description paragraph.`;
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry(ai, {
         model: "gemini-3.5-flash",
         contents: prompt
       });
@@ -317,8 +352,12 @@ Write a highly descriptive, professional filmmaker-style action description deta
       }
       return res.json({ description: responseText });
     } catch (err: any) {
-      console.error("AI Description Generation Error:", err);
-      return res.status(500).json({ error: err.message || "Failed to generate description from AI pipeline" });
+      console.error("AI Description Generation Error (gracefully falling back):", err);
+      const angleDesc = cameraAngle ? `shot from a ${cameraAngle} angle` : "captured beautifully";
+      const lensDesc = cameraLens ? `using a cinematic ${cameraLens} lens` : "with intense artistic depth";
+      const motionDesc = cameraMotion ? `empowered by a ${cameraMotion} camera movement` : "";
+      const generated = `A mesmerizing scene of "${title || "Pre-viz Scene"}", ${angleDesc} ${lensDesc}. The visual narrative highlights ${generationPrompt || "the focal elements"} ${motionDesc}, establishing deep cinematic gravitas and flawless emotional alignment.`;
+      return res.json({ description: generated, isFallback: true, warning: err.message });
     }
   });
 
