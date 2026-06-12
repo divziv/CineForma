@@ -432,7 +432,7 @@ export default function StoryboardCard({
     );
   };
 
-  const matchingScene = scenes.find(s => s.sceneNumber === shot.sceneNumber);
+  const matchingScene = (scenes || []).find(s => s && s.sceneNumber === shot.sceneNumber);
   const lightingMoodText = matchingScene?.lightingMood || "Cinematic atmosphere";
 
   return (

@@ -22,46 +22,51 @@ interface PacingVitalsProps {
   onUpdateAllShots?: (updatedShots: ShotAsset[]) => void;
 }
 
-export default function PacingVitals({ scenes, shots, onUpdateAllShots }: PacingVitalsProps) {
+export default function PacingVitals({ scenes = [], shots = [], onUpdateAllShots }: PacingVitalsProps) {
+  const safeScenes = scenes || [];
+  const safeShots = shots || [];
+
   // Aggregate stats
-  const totalShots = shots.length;
-  const totalDuration = shots.reduce((sum, s) => sum + s.durationSeconds, 0);
+  const totalShots = safeShots.length;
+  const totalDuration = safeShots.reduce((sum, s) => sum + (s?.durationSeconds || 0), 0);
   const avgShotDuration = totalShots > 0 ? totalDuration / totalShots : 0;
   
   // Calculate average emotional intensity
-  const avgIntensity = scenes.length > 0 
-    ? (scenes.reduce((sum, s) => sum + s.emotionalIntensity, 0) / scenes.length) 
+  const avgIntensity = safeScenes.length > 0 
+    ? (safeScenes.reduce((sum, s) => sum + (s?.emotionalIntensity || 0), 0) / safeScenes.length) 
     : 0;
 
   // Prepare recharts data
-  const chartData = scenes.map((scene) => ({
-    name: `Scene ${scene.sceneNumber}`,
-    intensity: scene.emotionalIntensity,
-    setting: scene.setting,
-    pace: scene.paceValue,
-    summary: scene.summary,
-  })).sort((a, b) => {
-    const numA = parseInt(a.name.replace("Scene ", ""), 10);
-    const numB = parseInt(b.name.replace("Scene ", ""), 10);
-    return numA - numB;
-  });
+  const chartData = safeScenes
+    .filter(Boolean)
+    .map((scene) => ({
+      name: `Scene ${scene.sceneNumber}`,
+      intensity: scene.emotionalIntensity || 0,
+      setting: scene.setting || "UNKNOWN",
+      pace: scene.paceValue || 0,
+      summary: scene.summary || "",
+    })).sort((a, b) => {
+      const numA = parseInt(a.name.replace("Scene ", ""), 10) || 0;
+      const numB = parseInt(b.name.replace("Scene ", ""), 10) || 0;
+      return numA - numB;
+    });
 
   const intensities = chartData.map(d => d.intensity);
   const maxIntensity = intensities.length > 0 ? Math.max(...intensities) : 10;
   const minIntensity = intensities.length > 0 ? Math.min(...intensities) : 1;
 
   const handleSyncAllSceneColors = () => {
-    if (!onUpdateAllShots || shots.length === 0) return;
+    if (!onUpdateAllShots || safeShots.length === 0) return;
     
-    let updatedShots = [...shots];
-    const uniqueScenes = Array.from(new Set(shots.map(s => s.sceneNumber)));
+    let updatedShots = [...safeShots];
+    const uniqueScenes = Array.from(new Set(safeShots.map(s => s?.sceneNumber).filter(Boolean)));
     
     uniqueScenes.forEach(scNum => {
-      const sceneShots = updatedShots.filter(s => s.sceneNumber === scNum);
-      if (sceneShots.length > 1) {
+      const sceneShots = updatedShots.filter(s => s && s.sceneNumber === scNum);
+      if (sceneShots.length > 1 && sceneShots[0]?.themeColors) {
         const targetColors = [...sceneShots[0].themeColors];
         updatedShots = updatedShots.map(s => {
-          if (s.sceneNumber === scNum) {
+          if (s && s.sceneNumber === scNum) {
             return {
               ...s,
               themeColors: targetColors
@@ -77,9 +82,9 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
 
   // Recommended Sound Design Mood based on intensity & pace
   const getMusicMoodRecommendation = () => {
-    if (scenes.length === 0) return "Ambient drone";
-    const primaryPace = scenes[0].paceValue;
-    const primaryIntensity = scenes[0].emotionalIntensity;
+    if (safeScenes.length === 0 || !safeScenes[0]) return "Ambient drone";
+    const primaryPace = safeScenes[0].paceValue || 0;
+    const primaryIntensity = safeScenes[0].emotionalIntensity || 0;
 
     if (primaryIntensity >= 7 && primaryPace >= 7) {
       return "Sub-bass industrial analog synth, sudden percussive drops";
@@ -95,7 +100,7 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
 
   // Generate SVG graph coordinates for Pacing (blue line) and Tension (rose line)
   const drawGraphPoints = (type: "pacing" | "tension") => {
-    if (shots.length === 0) return "";
+    if (safeShots.length === 0) return "";
     
     const width = 500;
     const height = 110;
@@ -104,13 +109,14 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
     const usableWidth = width - padding * 2;
     const usableHeight = height - padding * 2;
     
-    const stepX = shots.length > 1 ? usableWidth / (shots.length - 1) : usableWidth;
+    const stepX = safeShots.length > 1 ? usableWidth / (safeShots.length - 1) : usableWidth;
     
     let points = "";
     
-    shots.forEach((shot, idx) => {
+    safeShots.forEach((shot, idx) => {
+      if (!shot) return;
       // Find corresponding scene for intensity/tension
-      const associatedScene = scenes.find(s => s.sceneNumber === shot.sceneNumber);
+      const associatedScene = safeScenes.find(s => s && s.sceneNumber === shot.sceneNumber);
       
       const val = type === "pacing"
         // Shot duration inverted as speed indicator (longer shot = slower speed/pacing)
@@ -357,7 +363,7 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
       )}
 
       {/* SVG Rhythm Graph */}
-      {shots.length > 1 && (
+      {safeShots.length > 1 && (
         <div className="bg-bento-canvas border border-bento-border p-4 rounded-lg flex flex-col gap-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
@@ -429,9 +435,10 @@ export default function PacingVitals({ scenes, shots, onUpdateAllShots }: Pacing
               />
 
               {/* Data Node Anchors */}
-              {shots.map((shot, idx) => {
-                const associatedScene = scenes.find(s => s.sceneNumber === shot.sceneNumber);
-                const stepX = (500 - 30) / (shots.length - 1);
+              {safeShots.map((shot, idx) => {
+                if (!shot) return null;
+                const associatedScene = safeScenes.find(s => s && s.sceneNumber === shot.sceneNumber);
+                const stepX = (500 - 30) / (safeShots.length - 1);
                 const x = 15 + idx * stepX;
                 
                 const pacVal = Math.max(1, Math.min(10, 15 / (shot.durationSeconds || 3)));

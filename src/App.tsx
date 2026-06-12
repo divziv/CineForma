@@ -21,7 +21,10 @@ import {
   Clapperboard, 
   Video,
   Download,
-  Trash2
+  Trash2,
+  Printer,
+  Grid,
+  LayoutList
 } from "lucide-react";
 
 export default function App() {
@@ -38,6 +41,8 @@ export default function App() {
   // Custom states for sorting and multi-selection
   const [sortBy, setSortBy] = useState<"sequence" | "sceneNumber" | "duration">("sequence");
   const [selectedShotIds, setSelectedShotIds] = useState<string[]>([]);
+  const [gridColumnMode, setGridColumnMode] = useState<"single" | "two">("two");
+  const [displayColumns, setDisplayColumns] = useState<1 | 2>(2);
 
   const handleToggleSelectShot = (id: string) => {
     setSelectedShotIds(prev => 
@@ -173,6 +178,22 @@ export default function App() {
     // Default sequence sorting
     return a.sequenceId - b.sequenceId;
   });
+
+  const allFilteredSelected = sortedFilteredShots.length > 0 && sortedFilteredShots.every(s => selectedShotIds.includes(s.id));
+  const someFilteredSelected = sortedFilteredShots.length > 0 && sortedFilteredShots.some(s => selectedShotIds.includes(s.id)) && !allFilteredSelected;
+
+  const handleToggleSelectAll = () => {
+    if (allFilteredSelected) {
+      const filteredIds = sortedFilteredShots.map(s => s.id);
+      setSelectedShotIds(prev => prev.filter(id => !filteredIds.includes(id)));
+    } else {
+      const filteredIds = sortedFilteredShots.map(s => s.id);
+      setSelectedShotIds(prev => {
+        const union = new Set([...prev, ...filteredIds]);
+        return Array.from(union);
+      });
+    }
+  };
 
   // Global Keyboard Shortcuts Effect
   useEffect(() => {
@@ -724,16 +745,27 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
 
           {/* Export Action Dropdown */}
           {shots.length > 0 && (
-            <div className="relative inline-block text-left" id="header-export-selector">
+            <div className="flex items-center gap-2">
               <button
-                id="btn-trigger-export"
-                onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
-                className="bg-bento-accent hover:bg-orange-500 text-black font-sans font-bold text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all uppercase hover:scale-[1.02] active:scale-95"
-                title="Export Production Blueprints"
+                id="btn-print-grid"
+                onClick={() => window.print()}
+                className="bg-bento-panel hover:bg-slate-800 text-slate-100 hover:text-bento-accent border border-bento-border font-sans font-medium text-xs px-3.5 py-1.5 sm:py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all uppercase hover:scale-[1.02] active:scale-95"
+                title="Print Storyboard Grid"
               >
-                <Download className="w-4 h-4 text-black" />
-                <span>Export Package</span>
+                <Printer className="w-4 h-4 text-bento-accent" />
+                <span>Print Grid</span>
               </button>
+
+              <div className="relative inline-block text-left" id="header-export-selector">
+                <button
+                  id="btn-trigger-export"
+                  onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
+                  className="bg-bento-accent hover:bg-orange-500 text-black font-sans font-bold text-xs px-3.5 py-1.5 sm:py-2 rounded-lg flex items-center gap-1.5 cursor-pointer shadow-md transition-all uppercase hover:scale-[1.02] active:scale-95"
+                  title="Export Production Blueprints"
+                >
+                  <Download className="w-4 h-4 text-black" />
+                  <span>Export Package</span>
+                </button>
               {isExportDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-52 bg-bento-card border border-bento-border rounded-lg shadow-2xl z-50 overflow-hidden font-mono text-[10px]">
                   <div className="px-3 py-2 bg-bento-canvas border-b border-bento-border text-slate-400 font-bold uppercase tracking-wider">
@@ -762,7 +794,8 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                 </div>
               )}
             </div>
-          )}
+          </div>
+        )}
         </div>
       </header>
 
@@ -796,8 +829,48 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                   </div>
                   {shots.length > 0 && (
                     <div className="flex items-center gap-2 flex-wrap">
+                      {/* Select All Checkbox */}
+                      <label className="flex items-center gap-1.5 text-[10px] font-mono text-slate-400 bg-bento-canvas border border-bento-border/70 px-2 py-1.5 rounded cursor-pointer select-none hover:text-slate-200">
+                        <input
+                          id="checkbox-select-all"
+                          type="checkbox"
+                          checked={filteredShots.length > 0 && filteredShots.every(s => selectedShotIds.includes(s.id))}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              const allFilteredIds = filteredShots.map(s => s.id);
+                              setSelectedShotIds(prev => Array.from(new Set([...prev, ...allFilteredIds])));
+                            } else {
+                              const allFilteredIds = filteredShots.map(s => s.id);
+                              setSelectedShotIds(prev => prev.filter(id => !allFilteredIds.includes(id)));
+                            }
+                          }}
+                          className="w-3.5 h-3.5 accent-bento-accent bg-slate-950 border border-bento-border rounded cursor-pointer"
+                        />
+                        <span>Select All</span>
+                      </label>
+
+                      {/* Columns Toggler */}
+                      <button
+                        id="btn-toggle-columns"
+                        onClick={() => setDisplayColumns(prev => prev === 1 ? 2 : 1)}
+                        className="bg-bento-canvas hover:bg-slate-800 text-slate-300 text-[10px] font-mono px-2 py-1.5 rounded border border-bento-border/70 flex items-center gap-1.5 cursor-pointer transition-colors"
+                        title={displayColumns === 1 ? "Switch to Two Column layout" : "Switch to Single Column layout"}
+                      >
+                        {displayColumns === 1 ? (
+                          <>
+                            <Grid className="w-3.5 h-3.5 text-bento-accent" />
+                            <span>Two Column</span>
+                          </>
+                        ) : (
+                          <>
+                            <LayoutList className="w-3.5 h-3.5 text-bento-accent" />
+                            <span>Single Column</span>
+                          </>
+                        )}
+                      </button>
+
                       {/* Sorting Dropdown */}
-                      <div className="flex items-center gap-1.5 bg-bento-canvas border border-bento-border/70 px-2 py-1 rounded">
+                      <div className="flex items-center gap-1.5 bg-bento-canvas border border-bento-border/70 px-2 py-1.5 rounded">
                         <span className="text-[9px] uppercase font-mono text-slate-400">Sort:</span>
                         <select
                           value={sortBy}
@@ -815,7 +888,7 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                       {selectedShotIds.length > 0 && (
                         <button
                           onClick={handleBatchDeleteSelected}
-                          className="bg-rose-950/50 border border-rose-500/50 hover:bg-rose-900/60 text-rose-300 text-[10px] font-mono font-bold px-2 py-1 rounded flex items-center gap-1 cursor-pointer transition-colors uppercase animate-pulse"
+                          className="bg-rose-950/50 border border-rose-500/50 hover:bg-rose-900/60 text-rose-300 text-[10px] font-mono font-bold px-2 py-1.5 rounded flex items-center gap-1 cursor-pointer transition-colors uppercase animate-pulse"
                           title={`Trash ${selectedShotIds.length} checked item(s)`}
                         >
                           <Trash2 className="w-3.5 h-3.5 text-rose-450" />
@@ -865,8 +938,8 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                           🖱️ Click scene to jump to its shots
                         </span>
                       </div>
-                      {scenes.map((scene, idx) => {
-                        const hasShots = shots.some(s => s.sceneNumber === scene.sceneNumber);
+                      {(scenes || []).filter(Boolean).map((scene, idx) => {
+                        const hasShots = (shots || []).some(s => s && s.sceneNumber === scene.sceneNumber);
                         return (
                           <div 
                             key={idx} 
@@ -911,7 +984,7 @@ CHRONOLOGICAL SHOT & STORYBOARD LISTING
                         </button>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className={`grid gap-5 ${displayColumns === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}>
                         {sortedFilteredShots.map((shot) => (
                           <StoryboardCard
                              key={shot.id}
