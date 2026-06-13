@@ -1,78 +1,373 @@
-# 🎬 CineForma — Script-to-Canvas Pre-Visualization Studio
+# 🎬 CineForma: Script-to-Canvas Pre-Visualization Studio
 
-CineForma is a professional, high-fidelity pre-visualization suite designed for indie filmmakers, screenwriters, and directors. It bridges the gap between text screenplay structures and instant spatial layouts, generating structured visual metadata, emotional pace analysis, and customizable storyboard grids.
-
----
-
-## ⏳ Hackathon Context
-Developed as part of our hackathon sprint, **CineForma** resolves a critical bottleneck in modern filmmaking: the slow, repetitive translation of script screenplays into physical shot lists. By marrying a powerful heuristic script parser running parallel pipeline trace logs with an interactive, highly interactive pre-viz track grid, CineForma brings lightning-fast structure to creative chaos. It empowers creators to visualize camera angles, focal lengths, and scene rhythms under 10 seconds.
+🏆 **Microsoft Agents League Hackathon 2026 Submission**
+Built during **Microsoft AI Skills Fest 2026**
 
 ---
 
-## 🎯 Core Mission & Inspiration
-We believe cinematography shouldn't be gated behind costly software or hand-drawn sketches. Our mission is **democratization of pre-viz workflows**. 
-- **The Inspiration**: The golden era of storyboards (like Alfred Hitchcock’s detailed sketch directories) met with modern bento-grid modular design.
-- **The Philosophy**: Make the interface feel like a premium high-contrast edit-bay suite, utilizing elegant display typography, strict visual hierarchy, and instant, responsive feedback to help creators dial in scene dynamics.
+## 🔗 Project Links
+
+### Live Demo
+
+https://ai.studio/apps/567d55b4-ae52-4a03-97e8-4668d8354433?fullscreenApplet=true
+
+### Hackathon Submission
+
+https://innovationstudio.microsoft.com/hackathons/Agents-League-Hackathon/project/123639
+
+### Challenge Track
+
+**🎨 Creative Apps – Microsoft Agents League Hackathon 2026**
 
 ---
 
-## 🚀 Key Actions & Agent Capabilities
-CineForma comes packed with modular features to assist filmmakers through pre-production:
+# 🚀 Overview
 
-1. **Parser & Analyzer Pipeline**:
-   - Parses scenes from screenplay inputs instantly, detecting metadata like location type (`EXT.` vs `INT.`), settings, emotional intensity, and camera directions.
-   - Outputs a live trace log diagnostic dashboard for complete telemetry, capturing performance bottlenecks or structural warnings.
+CineForma is a screenplay pre-visualization workspace that transforms structured script content into an interactive planning environment for filmmakers, directors, and creative teams.
 
-2. **Cinematic Viewport Grid**:
-   - Displays shot cards styled as dynamic movie slides.
-   - **Active Counter & Cumulative Badges**: Displays current visible shot counts and the exact sum of shot durations dynamically within the header!
-   - **Dynamic Sorting Options**: Easily reorganize your timeline by **Sequence**, **Scene Number**, or shot **Duration** instantly.
-   - **Custom Camera Spectrums**: Interactive inputs for angle, motion presets, and cinematic lens profiles (e.g., *24mm Anamorphic*, *50mm Prime*).
-   - **Lock Protection**: Lock individual viewports to freeze them against accidental deletion, dragging, or edits while experimenting with nearby scenes.
+The platform helps creators move from screenplay text to production planning by organizing scenes, visualizing pacing, configuring camera metadata, and managing storyboard sequences within a unified workspace.
 
-3. **Batch Management Systems**:
-   - Add selection checkboxes on every viewport and run **Batch Delete Selected (Trash)** in a single click to prune unnecessary shots.
-
-4. **Pacing Vitals & Screen Checkers**:
-   - Built-in live charts powered by `recharts` plotting duration pacing, emotional fluctuations, and scene transitions over the course of the film’s timeline.
+Rather than relying on disconnected tools for script review, shot planning, and pacing analysis, CineForma centralizes these workflows into a single creative production interface.
 
 ---
 
-## 📦 Built With
-- **Framework**: [React 18](https://react.dev/) + [Vite](https://vitejs.dev/) for sub-millisecond local rendering responsiveness.
-- **Styling Engine**: [Tailwind CSS](https://tailwindcss.com/) with a custom Cosmic Slate color theme.
-- **Data Visualizations**: [Recharts](https://recharts.org/) for real-time pacing curves.
-- **Icons**: [Lucide React](https://lucide-react.tech/) for crisp editing tools.
+# 🎯 The Creative Challenge
+
+Pre-production is often fragmented across multiple tools and manual processes.
+
+Filmmakers typically move between:
+
+* Screenplay documents
+* Storyboard software
+* Shot lists
+* Camera planning notes
+* Production spreadsheets
+* Visual references
+
+This creates a workflow bottleneck where significant time is spent translating written scenes into actionable visual planning assets.
+
+Questions frequently arise such as:
+
+* Which scenes require the most coverage?
+* How does pacing evolve throughout the story?
+* What camera configurations are planned?
+* How many shots exist within a sequence?
+* How should scenes be organized during pre-production?
+
+CineForma addresses these challenges by providing a structured visual workspace that converts screenplay information into an interactive production planning environment.
 
 ---
 
-## 🛠️ Unified Installation & Development
+# 💡 Why CineForma?
 
-### 1. Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) (v18 or higher) installed.
+Traditional screenplay tools focus primarily on writing.
 
-### 2. Standard Installation
-Install package dependencies:
+Production planning tools focus on execution.
+
+CineForma bridges both worlds by introducing a visual planning layer that helps creators analyze and organize cinematic structure before production begins.
+
+The goal is not to replace creative decision-making but to accelerate the transition from written script to visual production planning.
+
+---
+
+# 🔄 Creative Workflow
+
+CineForma follows a structured screenplay-to-canvas workflow:
+
+```text
+Screenplay Input
+        │
+        ▼
+ Script Parsing
+        │
+        ▼
+ Scene Analysis
+        │
+        ▼
+ Shot Planning
+        │
+        ▼
+ Storyboard Workspace
+        │
+        ▼
+ Pacing Visualization
+        │
+        ▼
+ Production Preparation
+```
+
+This workflow allows creators to quickly move from narrative structure to production-ready planning artifacts.
+
+---
+
+# 🎬 Core Features
+
+## 1. Parser & Analysis Pipeline
+
+The screenplay parser processes script content and extracts production-relevant metadata.
+
+### Extracted Information
+
+* Scene identifiers
+* Interior / exterior markers
+* Environmental descriptions
+* Structural screenplay components
+* Sequence organization
+
+### Diagnostic Trace Logs
+
+The application also generates diagnostic pipeline traces that help visualize parsing behavior and processing stages.
+
+These logs provide visibility into how screenplay content is transformed into planning data.
+
+---
+
+## 2. Cinematic Viewport Grid
+
+The viewport workspace serves as the primary planning canvas.
+
+Each shot is represented as an interactive storyboard card containing production-focused metadata.
+
+### Capabilities
+
+* Visual shot organization
+* Sequence-based planning
+* Interactive scene management
+* Production-oriented layout controls
+
+### Camera Configuration Controls
+
+Creators can define:
+
+* Camera angles
+* Motion styles
+* Lens profiles
+* Cinematic presets
+
+Example profiles include:
+
+* 24mm Anamorphic
+* 50mm Prime
+* Wide-angle coverage
+* Standard narrative framing
+
+---
+
+## 3. Dynamic Sorting & Organization
+
+Storyboard elements can be reorganized dynamically using multiple views.
+
+### Sorting Modes
+
+* Sequence
+* Scene Number
+* Duration
+
+This enables flexible planning workflows depending on the stage of production.
+
+---
+
+## 4. Lock Protection System
+
+Storyboard cards can be locked to prevent accidental modifications.
+
+Protected cards remain fixed while surrounding scenes continue to be edited.
+
+This is useful during experimentation and iterative planning.
+
+---
+
+## 5. Batch Management Tools
+
+The workspace includes bulk editing functionality for large projects.
+
+### Features
+
+* Multi-selection controls
+* Batch deletion
+* Rapid sequence cleanup
+* Efficient storyboard management
+
+These tools help creators manage larger productions with many storyboard elements.
+
+---
+
+## 6. Pacing Vitals Dashboard
+
+CineForma includes a dedicated visualization layer for screenplay pacing analysis.
+
+### Visual Metrics
+
+* Scene duration trends
+* Emotional pacing indicators
+* Sequence progression
+* Timeline distribution
+
+The dashboard helps creators evaluate rhythm and structure across the project.
+
+---
+
+# 📊 Creative Planning Insights
+
+The platform provides visibility into production planning through:
+
+### Active Shot Tracking
+
+Displays the number of currently visible storyboard items.
+
+### Duration Aggregation
+
+Calculates cumulative duration metrics across selected sequences.
+
+### Timeline Awareness
+
+Helps creators understand how scenes are distributed throughout a project.
+
+### Visual Planning Metrics
+
+Supports early-stage production decisions through interactive visualizations.
+
+---
+
+# ✨ Key Capabilities
+
+### Screenplay Parsing
+
+Transforms screenplay structure into organized planning data.
+
+### Storyboard Management
+
+Provides an interactive visual workspace for shot planning.
+
+### Camera Metadata Planning
+
+Supports lens, angle, and movement configuration.
+
+### Pacing Analysis
+
+Visualizes screenplay rhythm through interactive charts.
+
+### Production Organization
+
+Enables sorting, grouping, filtering, and management of storyboard elements.
+
+### Creative Workflow Acceleration
+
+Reduces manual overhead associated with screenplay-to-production planning.
+
+---
+
+# 🎨 User Experience Design
+
+CineForma was designed as a high-contrast creative workspace optimized for extended planning sessions.
+
+Key design principles include:
+
+* Clear visual hierarchy
+* Fast interactions
+* Minimal workflow friction
+* Production-focused controls
+* Information-dense layouts
+* Responsive workspace organization
+
+The interface emphasizes clarity while maintaining the flexibility required during creative exploration.
+
+---
+
+# 🛠 Technology Stack
+
+## Frontend
+
+* React 18
+* TypeScript
+* Vite
+
+## Styling
+
+* Tailwind CSS
+* Custom visual theme
+
+## Data Visualization
+
+* Recharts
+
+## UI Components
+
+* Lucide React
+
+---
+
+# 🏗 Project Structure
+
+### src/App.tsx
+
+Core application workflow including:
+
+* Workspace orchestration
+* Sorting systems
+* Selection management
+* State handling
+
+### src/components/StoryboardCard.tsx
+
+Interactive storyboard viewport component responsible for:
+
+* Camera metadata display
+* Lock state controls
+* Scene visualization
+* User interaction handling
+
+### src/components/PacingVitals.tsx
+
+Visualization module responsible for:
+
+* Pacing analytics
+* Timeline charts
+* Sequence metrics
+* Creative planning insights
+
+---
+
+# 🚀 Local Development
+
+## Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 3. Local Development Server
-Launch the compiler and boot up the real-time development environment on port `3000`:
+## Start Development Server
+
 ```bash
 npm run dev
 ```
 
-### 4. Direct Production Build
-Compile and bundle all client-side code and backend server layers to static files:
+Application runs at:
+
+```text
+http://localhost:3000
+```
+
+## Production Build
+
 ```bash
 npm run build
 ```
 
 ---
 
-## 🧑⚖️ Submission
-CineForma represents a production-ready, highly interactive Web tool built under hackathon guidelines. Key components:
-- **`src/App.tsx`**: Houses the main workspace flow, the viewport grid, filters, sorting systems, and multi-selection handlers.
-- **`src/components/StoryboardCard.tsx`**: Modular, highly detailed card module representing camera lense options, lock state constraints, and custom procedural canvas renderings.
-- **`src/components/PacingVitals.tsx`**: Dynamic diagnostic chart tracking filmmaker metrics.
+# 🌟 Why CineForma Matters
+
+The transition from screenplay to production planning remains one of the most time-consuming stages of filmmaking.
+
+CineForma demonstrates how modern creative applications can streamline this process by combining screenplay analysis, storyboard organization, pacing visualization, and production planning into a unified workspace.
+
+By reducing friction between writing and visual planning, CineForma helps creators spend less time managing tools and more time refining their creative vision.
+
+---
+
+## 🏅 Microsoft Agents League Hackathon 2026
+
+CineForma was created for the **Creative Apps** challenge track during **Microsoft AI Skills Fest 2026**.
+
+The project showcases how thoughtful tooling, interactive visual workflows, and structured screenplay analysis can improve creative production planning while maintaining a streamlined and accessible user experience.
