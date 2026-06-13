@@ -366,6 +366,15 @@ By reducing friction between writing and visual planning, CineForma helps creato
 
 ---
 
+# 📸 Product Screens
+<img width="1902" height="823" alt="CineForma-S1" src="https://github.com/user-attachments/assets/c28aa5b4-3611-4d2f-b98b-d8bc53e084a7" />
+<img width="230" height="822" alt="CineForma-S2" src="https://github.com/user-attachments/assets/5112edc2-5e4e-4d2d-ae18-a2982249cbd0" />
+<img width="1257" height="630" alt="CineForma-S3" src="https://github.com/user-attachments/assets/85d5d1c3-ccde-4929-b9a6-0e700f0a9bc8" />
+<img width="1910" height="836" alt="CineForma-S4" src="https://github.com/user-attachments/assets/2a32366b-eb53-4fc7-82c2-156dbcbf1f43" />
+<img width="1917" height="832" alt="CineForma-S5" src="https://github.com/user-attachments/assets/4145e9ef-f76b-4859-a72f-7e6783169160" />
+<img width="1077" height="511" alt="CineForma-S6" src="https://github.com/user-attachments/assets/09672f9c-b490-40f9-9a44-e36507f444dd" />
+<img width="602" height="140" alt="CineForma-S7" src="https://github.com/user-attachments/assets/56ada941-ed50-419e-a4f3-9d1a2a660a9f" />
+
 ## 🏅 Microsoft Agents League Hackathon 2026
 
 CineForma was created for the **Creative Apps** challenge track during **Microsoft AI Skills Fest 2026**.
